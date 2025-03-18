@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+
+{# Page title #}
+{% block title %}Propiedades - Habitat{% endblock %}
+
+{% block content %}
+{# Main properties page container #}
+<div class="properties-page">
+    {# Hero section with main heading #}
+    <section class="hero-section properties-hero">
+        <div class="hero-content">
+            <h1>Encuentra Tu Hogar Ideal</h1>
+            <p class="lead">Explora nuestra selección exclusiva de propiedades</p>
+        </div>
+    </section>
+
+    {# Property search filters section #}
+    <section class="search-section">
+        <div class="container">
+            <div class="search-box card">
+                <form method="GET" class="search-form">
+                    {# Property type filter #}
+                    <div class="search-group">
+                        <i class="fas fa-home"></i>
+                        <select name="tipo" id="tipo">
+                            <option value="">Tipo de Propiedad</option>
+                            <option value="casa" {% if request.args.get('tipo') == 'casa' %}selected{% endif %}>Casa</option>
+                            <option value="apartamento" {% if request.args.get('tipo') == 'apartamento' %}selected{% endif %}>Apartamento</option>
+                            <option value="local" {% if request.args.get('tipo') == 'local' %}selected{% endif %}>Local</option>
+                        </select>
+                    </div>
+                    {# Location filter #}
+                    <div class="search-group">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <select name="zona" id="zona">
+                            <option value="">Ubicación</option>
+                            <option value="altamira" {% if request.args.get('zona') == 'altamira' %}selected{% endif %}>Altamira</option>
+                            <option value="la castellana" {% if request.args.get('zona') == 'la castellana' %}selected{% endif %}>La Castellana</option>
+                            <option value="chacao" {% if request.args.get('zona') == 'chacao' %}selected{% endif %}>Chacao</option>
+                        </select>
+                    </div>
+                    {# Price range filter #}
+                    <div class="search-group">
+                        <i class="fas fa-tag"></i>
+                        <select name="precio" id="precio">
+                            <option value="">Rango de Precio</option>
+                            <option value="0-100000" {% if request.args.get('precio') == '0-100000' %}selected{% endif %}>Hasta $100,000</option>
+                            <option value="100000-200000" {% if request.args.get('precio') == '100000-200000' %}selected{% endif %}>$100,000 - $200,000</option>
+                            <option value="200000+" {% if request.args.get('precio') == '200000+' %}selected{% endif %}>Más de $200,000</option>
+                        </select>
+                    </div>
+                    {# Search button #}
+                    <button type="submit" class="btn btn-accent">
+                        <i class="fas fa-search"></i>
+                        Buscar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    {# Interactive map section #}
+    <section class="map-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Ubicación de Propiedades</h2>
+                <p>Explora las propiedades disponibles en el mapa</p>
+            </div>
+            <div id="map" class="map-container"></div>
+        </div>
+    </section>
+
+    {# Properties grid section #}
+    <section class="properties-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Propiedades Disponibles</h2>
+                <p>Encuentra la propiedad que mejor se adapte a tus necesidades</p>
+            </div>
+            {# Grid of property cards #}
+            <div class="properties-grid grid">
+                {% for property in properties %}
+                {# Individual property card #}
+                <div class="property-card card" data-latitude="{{ property.latitude }}" data-longitude="{{ property.longitude }}" data-id="{{ property.id }}">
+                    {# Property image slideshow #}
+                    <div class="property-image">
+                        <div class="property-slideshow">
+                            <div class="slide active">
+                                <img src="{{ property.image_url }}" alt="{{ property.title }}">
+                            </div>
+                            {% for image in property.images %}
+                            <div class="slide">
+                                <img src="{{ image.image_url }}" alt="{{ property.title }}">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {# Property type and price badges #}
+                        <div class="property-badges">
+                            <span class="badge badge-type">{{ property.property_type }}</span>
+                            <span class="badge badge-price">${{ "{:,.0f}".format(property.price) }}</span>
+                        </div>
+                    </div>
+                    {# Property details #}
+                    <div class="property-content">
+                        <h3>{{ property.title }}</h3>
+                        <div class="property-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>{{ property.location }}</span>
+                        </div>
+                        {# Property features #}
+                        <div class="property-features">
+                            <div class="feature">
+                                <i class="fas fa-bed"></i>
+                                <span>{{ property.bedrooms }} Hab</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-bath"></i>
+                                <span>{{ property.bathrooms }} Baños</span>
+                            </div>
+                            <div class="feature">
+                                <i class="fas fa-ruler-combined"></i>
+                                <span>{{ property.area }}m²</span>
+                            </div>
+                        </div>
+                        <a href="{{ url_for('property_detail', id=property.id) }}" class="btn btn-primary">
+                            Ver Detalles <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {# Pagination #}
+            {% if pagination.pages > 1 %}
+            <div class="pagination">
+                {% for page in pagination.iter_pages() %}
+                    {% if page %}
+                        {% if page != pagination.page %}
+                            <a href="{{ url_for('properties', page=page, **request.args) }}" class="page-link">{{ page }}</a>
+                        {% else %}
+                            <span class="current-page">{{ page }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="ellipsis">...</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    {# Admin access button #}
+    <div class="admin-float">
+        <a href="{{ url_for('admin') }}" class="admin-button">
+            <i class="fas fa-user-lock"></i>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{# External Leaflet CSS for map functionality #}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+/* Properties page specific styles */
+
+/* Page container */
+.properties-page {
+    min-height: 100vh;
+    padding-bottom: var(--spacing-lg);
+}
+
+/* Search section styling */
+.search-section {
+    margin-top: -3rem;
+    margin-bottom: var(--spacing-lg);
+    position: relative;
+    z-index: 10;
+}
+
+/* Search form layout */
+.search-form {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* Search input group styling */
+.search-group {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+}
+
+/* Search icon styling */
+.search-group i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent-color);
+    z-index: 1;
+}
+
+/* Search select input styling */
+.search-group select {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
+    background-color: var(--darker-gray);
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+/* Search select focus state */
+.search-group select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+}
+
+/* Search button styling */
+.btn-accent {
+    background: linear-gradient(135deg, var(--accent-color), #B4941F);
+    color: var(--dark-gray);
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Search button hover effect */
+.btn-accent:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+/* Property slideshow container */
+.property-slideshow {
+    height: 100%;
+}
+
+/* Slideshow slide styling */
+.slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease;
+}
+
+/* Active slide state */
+.slide.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Property content section */
+.property-content {
+    padding: 1.5rem;
+}
+
+/* Property location styling */
+.property-location {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0 1rem;
+}
+
+/* Location icon styling */
+.property-location i {
+    color: var(--accent-color);
+    font-size: 1.2rem;
+}
+
+/* Property features layout */
+.property-features {
+    display: flex;
+    gap: 1.5rem;
+    margin: 1rem 0 1.5rem;
+}
+
+/* Individual feature styling */
+.feature {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Feature icon styling */
+.feature i {
+    color: var(--accent-color);
+    font-size: 1.1rem;
+}
+
+/* Primary button styling */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: var(--text-color);
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Primary button hover effect */
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-color: var(--accent-color);
+}
+
+/* Map popup styling */
+.leaflet-popup-content-wrapper {
+    background: var(--darker-gray);
+    color: var(--text-color);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+}
+
+/* Map popup arrow styling */
+.leaflet-popup-tip {
+    background: var(--darker-gray);
+}
+
+/* Map popup content styling */
+.map-popup {
+    padding: 0.5rem;
+}
+
+/* Map popup image styling */
+.map-popup img {
+    border-radius: 8px;
+    margin-bottom: 0.8rem;
+}
+
+/* Map popup heading styling */
+.map-popup h4 {
+    color: var(--text-color);
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+}
+
+/* Map popup price styling */
+.map-popup .price {
+    color: var(--accent-color);
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+}
+
+/* Map popup link styling */
+.map-popup-link {
+    background: linear-gradient(135deg, var(--accent-color), #B4941F);
+    color: var(--dark-gray);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+/* Map popup link hover effect */
+.map-popup-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    /* Stack search form elements on mobile */
+    .search-form {
+        flex-direction: column;
+    }
+    
+    .search-group {
+        width: 100%;
+    }
+    
+    /* Full-width search button on mobile */
+    .btn-accent {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+{# External Leaflet JS for map functionality #}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Initialize property cards when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initializePropertyCards();
+});
+
+// Function to handle property card slideshows
+function initializePropertyCards() {
+    const propertyCards = document.querySelectorAll('.property-card');
+    
+    propertyCards.forEach(card => {
+        const slides = card.querySelectorAll('.slide');
+        if (slides.length <= 1) return;
+        
+        let currentSlide = 0;
+        let slideInterval;
+
+        // Function to display a specific slide
+        const showSlide = (index) => {
+            slides.forEach(slide => {
+                slide.style.opacity = '0';
+                slide.style.visibility = 'hidden';
+            });
+            
+            slides[index].style.visibility = 'visible';
+            setTimeout(() => slides[index].style.opacity = '1', 50);
+        };
+
+        // Function to advance to next slide
+        const nextSlide = () => {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        };
+
+        // Start slideshow on hover
+        card.addEventListener('mouseenter', () => {
+            if (slideInterval) clearInterval(slideInterval);
+            slideInterval = setInterval(nextSlide, 3000);
+        });
+
+        // Stop slideshow and reset on mouse leave
+        card.addEventListener('mouseleave', () => {
+            if (slideInterval) {
+                clearInterval(slideInterval);
+                slideInterval = null;
+            }
+            currentSlide = 0;
+            showSlide(currentSlide);
+        });
+
+        // Show first slide initially
+        showSlide(0);
+    });
+}
+</script>
+{% endblock %}

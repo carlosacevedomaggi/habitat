@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ get_setting('site_name', 'Habitat') }}{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family={{ get_setting('primary_font', 'Montserrat').replace(' ', '+') }}:wght@400;500;600;700&family={{ get_setting('secondary_font', 'Raleway').replace(' ', '+') }}:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- CSS Variables -->
+    <style>
+        :root {
+            --primary-color: {{ get_setting('primary_color', '#400000') }};
+            --primary-dark: {{ get_setting('primary_color', '#400000') }}dd;
+            --secondary-color: {{ get_setting('secondary_color', '#1A0000') }};
+            --accent-color: {{ get_setting('accent_color', '#D4AF37') }};
+            --text-color: {{ get_setting('text_color', '#FFFFFF') }};
+            --light-text: {{ get_setting('text_color', '#FFFFFF') }};
+            --dark-gray: {{ get_setting('background_color', '#1A1A1A') }};
+            --darker-gray: {{ get_setting('background_color', '#1A1A1A') }}dd;
+            --font-primary: '{{ get_setting('primary_font', 'Montserrat') }}', sans-serif;
+            --font-secondary: '{{ get_setting('secondary_font', 'Raleway') }}', sans-serif;
+        }
+    </style>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="{{ url_for('index') }}">
+                    <i class="fas fa-home"></i>
+                    <span>{{ get_setting('site_name', 'Habitat') }}</span>
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}"><i class="fas fa-house"></i> Inicio</a></li>
+                <li><a href="{{ url_for('properties') }}"><i class="fas fa-building"></i> Propiedades</a></li>
+                <li><a href="{{ url_for('about') }}"><i class="fas fa-users"></i> Nosotros</a></li>
+                <li><a href="{{ url_for('contact') }}"><i class="fas fa-envelope"></i> Contacto</a></li>
+            </ul>
+            <div class="nav-auth">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('admin_settings') }}" class="admin-link"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="{{ url_for('admin') }}" class="admin-link"><i class="fas fa-user-lock"></i> Admin</a>
+                    <a href="{{ url_for('logout') }}" class="logout-link"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+                {% else %}
+                    <a href="{{ url_for('admin') }}" class="admin-link"><i class="fas fa-user-lock"></i> Admin</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                        <button type="button" class="close-alert">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>{{ get_setting('site_name', 'Habitat') }}</h3>
+                <p>Tu socio confiable en bienes raíces</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Enlaces Rápidos</h3>
+                <ul>
+                    <li><a href="{{ url_for('properties') }}">Propiedades</a></li>
+                    <li><a href="{{ url_for('about') }}">Nosotros</a></li>
+                    <li><a href="{{ url_for('contact') }}">Contacto</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contacto</h3>
+                <p><i class="fas fa-phone"></i> +58 (212) 555-0123</p>
+                <p><i class="fas fa-envelope"></i> info@habitat.com</p>
+                <p><i class="fas fa-map-marker-alt"></i> Caracas, Venezuela</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 {{ get_setting('site_name', 'Habitat') }}. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html> 

@@ -1,0 +1,646 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habitat - Tu Hogar Ideal</title>
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    {% block extra_head %}
+    <style>
+    /* Base styles */
+    body {
+        color: white;
+    }
+
+    /* Navigation styles */
+    .nav-links a, .admin-link {
+        color: white;
+    }
+
+    .nav-links i, .admin-link i, .logo i {
+        color: #D4AF37;
+    }
+
+    /* Hero section */
+    .hero-section {
+        background: linear-gradient(rgba(26, 0, 0, 0.8), rgba(26, 0, 0, 0.8)), url('/static/images/hero-bg.jpg') center/cover;
+    }
+
+    .hero-content h1, .hero-content p {
+        color: white;
+    }
+
+    /* Search box styles */
+    .search-box {
+        background: #1A0000;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-form select, .search-form input {
+        background: #400000;
+        border: 1px solid #600000;
+        color: white;
+    }
+
+    .search-btn {
+        background: #400000;
+        color: rgb(94, 2, 2);
+        border: none;
+    }
+
+    .search-btn:hover {
+        background: #600000;
+    }
+
+    .search-btn i {
+        color: #D4AF37;
+    }
+
+    /* Featured properties section */
+    .featured-properties h2, 
+    .property-card h3, 
+    .property-location, 
+    .property-details,
+    .property-price {
+        color: white;
+    }
+
+    .property-card i {
+        color: #D4AF37;
+    }
+
+    /* Features section */
+    .features-section h2,
+    .feature-card h3,
+    .feature-card p {
+        color: white;
+    }
+
+    .feature-card i {
+        color: #D4AF37;
+    }
+
+    /* Footer */
+    .footer-content h3,
+    .footer-content p,
+    .footer-content a,
+    .footer-bottom p {
+        color: white;
+    }
+
+    .footer-content i {
+        color: #D4AF37;
+    }
+
+    /* Keep original colors for specific sections */
+    .about-title, 
+    .mission-title, 
+    .values-title, 
+    .team-title, 
+    .contact-title {
+        color: inherit;
+    }
+
+    .hero-section {
+        color: var(--text-color);
+        padding: 8rem 2rem;
+        text-align: center;
+        margin-top: 60px;
+    }
+
+    .hero-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .hero-content h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--text-color);
+    }
+
+    .hero-content p {
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+        color: var(--text-color);
+    }
+
+    .search-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+        align-items: center;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .search-group {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .search-group select {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid var(--accent-color);
+        border-radius: 5px;
+        background: var(--dark-gray);
+        color: var(--text-color);
+    }
+
+    .search-btn {
+        padding: 0.8rem 2rem;
+        background-color: var(--accent-color);
+        color: var(--text-color);
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background-color 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .search-btn:hover {
+        background-color: var(--secondary-color);
+    }
+
+    .featured-properties {
+        padding: 4rem 0;
+        background: var(--dark-gray);
+    }
+
+    .featured-properties h2 {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--text-color);
+    }
+
+    .property-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        padding: 0 2rem;
+    }
+
+    .property-card {
+        background: var(--darker-gray);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .property-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .property-image {
+        position: relative;
+        height: 200px;
+    }
+
+    .property-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .property-type {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        background: var(--accent-color);
+        color: var(--text-color);
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        font-size: 0.9rem;
+    }
+
+    .property-info {
+        padding: 1.5rem;
+    }
+
+    .property-info h3 {
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .property-location {
+        color: var(--text-color);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .property-details {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        color: var(--text-color);
+    }
+
+    .property-price {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+    }
+
+    .view-details {
+        display: inline-block;
+        padding: 0.8rem 1.5rem;
+        background: var(--secondary-color);
+        color: var(--text-color);
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+    }
+
+    .view-details:hover {
+        background: var(--accent-color);
+    }
+
+    .features-section {
+        padding: 4rem 2rem;
+        background: var(--darker-gray);
+        text-align: center;
+    }
+
+    .features-section h2 {
+        margin-bottom: 3rem;
+        color: var(--text-color);
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        padding: 2rem;
+        background: var(--dark-gray);
+        border-radius: 10px;
+        transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .feature-card i {
+        font-size: 2.5rem;
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+        color: var(--text-color);
+        margin-bottom: 1rem;
+    }
+
+    .feature-card p {
+        color: var(--text-color);
+    }
+
+    .view-all-properties {
+        padding: 4rem 0;
+        text-align: center;
+        background: var(--dark-gray);
+    }
+
+    .button-container {
+        display: flex;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .cta-button {
+        display: inline-block;
+        padding: 1rem 2rem;
+        background-color: var(--secondary-color);
+        color: var(--text-color);
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+    }
+
+    .cta-button:hover {
+        background-color: var(--accent-color);
+    }
+
+    @media (max-width: 768px) {
+        .hero-content h1 {
+            font-size: 2rem;
+        }
+        
+        .search-form {
+            flex-direction: column;
+        }
+        
+        .search-group {
+            width: 100%;
+        }
+    }
+
+    .search-box {
+        background: #1A0000;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-box input,
+    .search-box select {
+        background: #400000;
+        border: 1px solid #600000;
+        color: white;
+    }
+
+    .search-box label {
+        color: white;
+    }
+
+    .search-box button {
+        background: #400000;
+        color: white;
+        border: none;
+    }
+
+    .search-box button:hover {
+        background: #600000;
+    }
+
+    .search-box i {
+        color: #D4AF37;
+    }
+
+    .feature-icon {
+        color: #D4AF37;
+    }
+
+    .why-choose-icon {
+        color: #D4AF37;
+    }
+
+    .property-icon {
+        color: #D4AF37;
+    }
+
+    .section-title {
+        color: white;
+    }
+
+    /* Keep these specific titles in their original color */
+    .about-title, 
+    .mission-title, 
+    .values-title, 
+    .team-title, 
+    .contact-title {
+        color: inherit;
+    }
+
+    .search-container {
+        background: #333333;
+        padding: 2rem;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .property-type {
+        background: #1A0000;
+        color: white;
+    }
+
+    .property-price {
+        background: #1A0000;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+    }
+
+    .search-btn {
+        background: #1A0000;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .search-btn:hover {
+        background: #400000;
+    }
+
+    .search-btn i {
+        color: #D4AF37;
+    }
+
+    .search-group select {
+        background: #1A0000;
+        border: 1px solid #400000;
+        color: white;
+        padding: 0.8rem;
+        border-radius: 5px;
+        width: 100%;
+    }
+
+    .search-group select:hover {
+        border-color: #600000;
+    }
+
+    .property-details i {
+        color: #D4AF37;
+    }
+    </style>
+    {% endblock %}
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="{{ url_for('index') }}">
+                    <i class="fas fa-home"></i>
+                    <span>Habitat</span>
+                </a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}"><i class="fas fa-house"></i> Inicio</a></li>
+                <li><a href="{{ url_for('properties') }}"><i class="fas fa-building"></i> Propiedades</a></li>
+                <li><a href="{{ url_for('about') }}"><i class="fas fa-users"></i> Nosotros</a></li>
+                <li><a href="{{ url_for('contact') }}"><i class="fas fa-envelope"></i> Contacto</a></li>
+            </ul>
+            <a href="{{ url_for('admin') }}" class="admin-link"><i class="fas fa-user-lock"></i> Admin</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="hero-section">
+            <div class="hero-content">
+                <h1>Encuentra Tu Hogar Ideal</h1>
+                <p>Descubre las mejores propiedades en las zonas más exclusivas</p>
+                <div class="search-container">
+                    <form class="search-form" action="{{ url_for('properties') }}" method="GET">
+                        <div class="search-group">
+                            <select name="tipo" id="tipo">
+                                <option value="">Tipo de Propiedad</option>
+                                <option value="casa">Casa</option>
+                                <option value="apartamento">Apartamento</option>
+                                <option value="terreno">Terreno</option>
+                            </select>
+                        </div>
+                        <div class="search-group">
+                            <select name="zona" id="zona">
+                                <option value="">Zona</option>
+                                <option value="altamira">Altamira</option>
+                                <option value="chacao">Chacao</option>
+                                <option value="lacastellana">La Castellana</option>
+                            </select>
+                        </div>
+                        <div class="search-group">
+                            <select name="precio" id="precio">
+                                <option value="">Rango de Precio</option>
+                                <option value="0-100000">$0 - $100,000</option>
+                                <option value="100000-200000">$100,000 - $200,000</option>
+                                <option value="200000+">$200,000+</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="search-btn">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Properties Section -->
+        <section class="featured-properties">
+            <div class="container">
+                <h2>Propiedades Destacadas</h2>
+                {% if featured_properties %}
+                <div class="property-grid">
+                    {% for property in featured_properties %}
+                    <div class="property-card" data-id="{{ property.id }}" data-lat="{{ property.latitude }}" data-lng="{{ property.longitude }}">
+                        <div class="property-image">
+                            <img src="{{ property.image_url }}" alt="{{ property.title }}">
+                            <span class="property-type">{{ property.property_type|title }}</span>
+                        </div>
+                        <div class="property-info">
+                            <h3>{{ property.title }}</h3>
+                            <p class="property-location">
+                                <i class="fas fa-map-marker-alt"></i> {{ property.location }}
+                            </p>
+                            <div class="property-details">
+                                {% if property.bedrooms %}
+                                <span><i class="fas fa-bed"></i> {{ property.bedrooms }} Hab</span>
+                                {% endif %}
+                                {% if property.bathrooms %}
+                                <span><i class="fas fa-bath"></i> {{ property.bathrooms }} Baños</span>
+                                {% endif %}
+                                {% if property.area %}
+                                <span><i class="fas fa-vector-square"></i> {{ property.area }} m²</span>
+                                {% endif %}
+                            </div>
+                            <div class="property-price">${{ "{:,.0f}".format(property.price) }}</div>
+                            <a href="{{ url_for('property_detail', id=property.id) }}" class="view-details">Ver Detalles</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="no-properties">No hay propiedades destacadas en este momento.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Why Choose Us Section -->
+        <section id="features" class="features-section">
+            <h2>{{ get_setting('why_choose_title', '¿Por Qué Elegirnos?') }}</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="{{ get_setting('feature_1_icon', 'fas fa-medal') }}"></i>
+                    <h3>{{ get_setting('feature_1_title', 'Calidad Garantizada') }}</h3>
+                    <p>{{ get_setting('feature_1_text', 'Todas nuestras propiedades son cuidadosamente seleccionadas y verificadas.') }}</p>
+                </div>
+                <div class="feature-card">
+                    <i class="{{ get_setting('feature_2_icon', 'fas fa-handshake') }}"></i>
+                    <h3>{{ get_setting('feature_2_title', 'Servicio Personalizado') }}</h3>
+                    <p>{{ get_setting('feature_2_text', 'Te acompañamos en cada paso del proceso de búsqueda.') }}</p>
+                </div>
+                <div class="feature-card">
+                    <i class="{{ get_setting('feature_3_icon', 'fas fa-map-marked-alt') }}"></i>
+                    <h3>{{ get_setting('feature_3_title', 'Ubicaciones Premium') }}</h3>
+                    <p>{{ get_setting('feature_3_text', 'Las mejores zonas con excelente plusvalía.') }}</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- View All Properties Button -->
+        <section class="view-all-properties">
+            <div class="container">
+                <div class="button-container">
+                    <a href="{{ url_for('properties') }}" class="cta-button">Ver Todas las Propiedades</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Habitat</h3>
+                <p>Tu socio confiable en bienes raíces</p>
+                <div class="social-links">
+                    <a href="{{ get_setting('facebook_url', '#') }}" target="_blank"><i class="fab fa-facebook"></i></a>
+                    <a href="{{ get_setting('instagram_url', '#') }}" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="{{ get_setting('whatsapp_url', '#') }}" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Enlaces Rápidos</h3>
+                <ul>
+                    <li><a href="{{ url_for('properties') }}">Propiedades</a></li>
+                    <li><a href="{{ url_for('about') }}">Nosotros</a></li>
+                    <li><a href="{{ url_for('contact') }}">Contacto</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Búscanos</h3>
+                <p><i class="fas fa-phone"></i> {{ get_setting('contact_phone', '+58 (212) 555-0123') }}</p>
+                <p><i class="fas fa-envelope"></i> {{ get_setting('contact_email', 'info@habitat.com') }}</p>
+                <p><i class="fas fa-map-marker-alt"></i> {{ get_setting('contact_address', 'Caracas, Venezuela') }}</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Habitat. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

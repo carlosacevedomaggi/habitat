@@ -1,0 +1,642 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ property.title }} - Habitat
+{% endblock %}
+
+{% block content %}
+<div class="property-detail-page">
+    <section class="property-hero">
+        <div class="hero-overlay"></div>
+        <div class="container">
+            <div class="property-header">
+                <h1>{{ property.title }}</h1>
+            </div>
+        </div>
+    </section>
+
+    <section class="property-content">
+        <div class="container">
+            <div class="content-grid">
+                <div class="main-content">
+                    <div class="property-gallery">
+                        <div class="main-image">
+                            <img src="{{ property.image_url }}" alt="{{ property.title }}" id="mainImage">
+                        </div>
+                        {% if property.images %}
+                        <div class="thumbnail-grid">
+                            <button class="thumb active" data-src="{{ property.image_url }}">
+                                <img src="{{ property.image_url }}" alt="{{ property.title }}">
+                            </button>
+                            {% for image in property.images %}
+                            <button class="thumb" data-src="{{ image.image_url }}">
+                                <img src="{{ image.image_url }}" alt="{{ property.title }}">
+                            </button>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="property-meta">
+                        <div class="price-location">
+                            <span class="property-price">${{ "{:,.0f}".format(property.price) }}</span>
+                            <span class="property-location"><i class="fas fa-map-marker-alt"></i> {{ property.location }}</span>
+                        </div>
+                    </div>
+
+                    <div class="property-info">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <i class="fas fa-bed"></i>
+                                <span class="label">Habitaciones</span>
+                                <span class="value">{{ property.bedrooms }}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-bath"></i>
+                                <span class="label">Baños</span>
+                                <span class="value">{{ property.bathrooms }}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-ruler-combined"></i>
+                                <span class="label">Área</span>
+                                <span class="value">{{ property.area }}m²</span>
+                            </div>
+                        </div>
+
+                        <div class="property-type-label">
+                            <span>{{ property.property_type }}</span>
+                        </div>
+
+                        <div class="description">
+                            <h2>Descripción</h2>
+                            <p>{{ property.description }}</p>
+                        </div>
+                    </div>
+
+                    <div class="map-section">
+                        <h2>Ubicación</h2>
+                        <div id="map" data-latitude="{{ property.latitude }}" data-longitude="{{ property.longitude }}"></div>
+                    </div>
+                </div>
+
+                <div class="sidebar">
+                    <div class="contact-form-container">
+                        <h2>Consultar sobre esta propiedad</h2>
+                        <form method="POST" action="{{ url_for('contact') }}" class="contact-form">
+                            <input type="hidden" name="property_id" value="{{ property.id }}">
+                            
+                            <div class="form-group">
+                                <label for="name">Nombre</label>
+                                <input type="text" id="name" name="name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="phone">Teléfono</label>
+                                <input type="tel" id="phone" name="phone">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="message">Mensaje</label>
+                                <textarea id="message" name="message" required>Hola, me interesa esta propiedad con ID {{ property.id }}</textarea>
+                            </div>
+                            
+                            <button type="submit" class="submit-btn">
+                                <span>Enviar Consulta</span>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+.property-detail-page {
+    background-color: #1a1a1a;
+    color: white;
+    min-height: 100vh;
+}
+
+.property-hero {
+    background: linear-gradient(rgba(26, 0, 0, 0.7), rgba(26, 0, 0, 0.9));
+    padding: 6rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, rgba(26, 0, 0, 0.5) 0%, rgba(26, 0, 0, 0.8) 100%);
+    z-index: 1;
+}
+
+.property-header {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.property-header h1 {
+    font-size: 3.5rem;
+    margin-bottom: 2rem;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    font-weight: 700;
+}
+
+.property-meta {
+    margin: 2rem 0;
+    padding: 2rem;
+    background: linear-gradient(145deg, #262626, #1f1f1f);
+    border-radius: 25px;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.price-location {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.property-price {
+    color: #D4AF37;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.property-location {
+    color: #fff;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.property-location i {
+    color: #D4AF37;
+}
+
+.property-type-label {
+    display: inline-block;
+    background: linear-gradient(135deg, #1A0000, #400000);
+    color: #D4AF37;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.description {
+    margin-top: 2rem;
+}
+
+.property-content {
+    padding: 6rem 0;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 4rem;
+    align-items: start;
+}
+
+.property-gallery {
+    background: linear-gradient(145deg, #262626, #1f1f1f);
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.main-image {
+    width: 100%;
+    height: 500px;
+    position: relative;
+    overflow: hidden;
+}
+
+.main-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+
+.thumbnail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1rem;
+    padding: 2rem;
+    background: rgba(26, 0, 0, 0.8);
+}
+
+.thumb {
+    width: 100%;
+    height: 80px;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    padding: 0;
+    transition: all 0.3s ease;
+    opacity: 0.6;
+}
+
+.thumb.active {
+    opacity: 1;
+    box-shadow: 0 0 0 3px #D4AF37;
+}
+
+.thumb:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+.thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.property-info {
+    background: linear-gradient(145deg, #262626, #1f1f1f);
+    border-radius: 25px;
+    padding: 3rem;
+    margin-top: 4rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 3rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-item {
+    text-align: center;
+}
+
+.info-item i {
+    font-size: 2rem;
+    color: #D4AF37;
+    margin-bottom: 1rem;
+}
+
+.info-item .label {
+    display: block;
+    color: #999;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.info-item .value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white;
+}
+
+.description h2 {
+    font-size: 2.5rem;
+    color: var(--accent-color);
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+    display: inline-block;
+    text-align: center;
+}
+
+.description h2::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: var(--accent-color);
+}
+
+.description p {
+    line-height: 1.8;
+    color: #ccc;
+}
+
+.map-section {
+    margin-top: 4rem;
+}
+
+.map-section h2 {
+    font-size: 2.5rem;
+    color: var(--accent-color);
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+    display: inline-block;
+    text-align: center;
+}
+
+.map-section h2::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: var(--accent-color);
+}
+
+#map {
+    height: 400px;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.contact-form-container {
+    background: linear-gradient(145deg, #262626, #1f1f1f);
+    border-radius: 25px;
+    padding: 3rem;
+    position: sticky;
+    top: 2rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.contact-form-container h2 {
+    font-size: 2.5rem;
+    color: var(--accent-color);
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+    display: inline-block;
+    text-align: center;
+}
+
+.contact-form-container h2::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background: var(--accent-color);
+}
+
+.contact-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.contact-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #ccc;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.contact-form input,
+.contact-form textarea {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(26, 0, 0, 0.8);
+    border: 2px solid #400000;
+    border-radius: 12px;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    outline: none;
+    border-color: #D4AF37;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+}
+
+.contact-form textarea {
+    height: 120px;
+    resize: vertical;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #1A0000, #400000);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.submit-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transition: 0.5s;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.3);
+}
+
+.submit-btn:hover::before {
+    left: 100%;
+}
+
+.submit-btn i {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.submit-btn:hover i {
+    transform: translateX(5px);
+}
+
+@media (max-width: 1200px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+    }
+
+    .contact-form-container {
+        position: static;
+    }
+}
+
+@media (max-width: 768px) {
+    .property-header h1 {
+        font-size: 2.5rem;
+    }
+
+    .property-meta {
+        gap: 1rem;
+    }
+
+    .property-meta span {
+        padding: 0.8rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .main-image {
+        height: 300px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+}
+</style>
+
+{% block extra_scripts %}
+<!-- Load Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Image gallery functionality
+    const mainImage = document.getElementById('mainImage');
+    const thumbnails = document.querySelectorAll('.thumb');
+    
+    thumbnails.forEach(thumb => {
+        thumb.addEventListener('click', function() {
+            // Update main image
+            mainImage.src = this.dataset.src;
+            
+            // Update active state
+            thumbnails.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Smooth scroll animation for main image
+            mainImage.style.opacity = '0';
+            setTimeout(() => {
+                mainImage.style.opacity = '1';
+            }, 200);
+        });
+    });
+
+    // Initialize map
+    try {
+        // Remove any existing map instance
+        if (window.propertyMap) {
+            window.propertyMap.remove();
+        }
+
+        const mapElement = document.getElementById('map');
+        const lat = parseFloat(mapElement.dataset.latitude);
+        const lng = parseFloat(mapElement.dataset.longitude);
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+            // Initialize map with property location
+            const map = L.map('map', {
+                center: [lat, lng],
+                zoom: 15,
+                zoomControl: true,
+                scrollWheelZoom: true
+            });
+            window.propertyMap = map;
+
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add marker with custom icon
+            const marker = L.marker([lat, lng], {
+                title: document.querySelector('.property-header h1').textContent
+            }).addTo(map);
+
+            // Create popup content
+            const popupContent = `
+                <div class="map-popup">
+                    <img src="${mainImage.src}" alt="Property Image">
+                    <h4>${document.querySelector('.property-header h1').textContent}</h4>
+                    <div class="price">${document.querySelector('.property-price').textContent}</div>
+                </div>
+            `;
+
+            // Bind popup to marker
+            marker.bindPopup(popupContent, {
+                maxWidth: 300,
+                className: 'property-popup'
+            });
+
+            // Force map refresh after it's rendered
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 300);
+        }
+    } catch (error) {
+        console.error('Error initializing property map:', error);
+        const mapContainer = document.getElementById('map');
+        if (mapContainer) {
+            mapContainer.innerHTML = `
+                <div class="map-error">
+                    <p>Error al cargar el mapa. Por favor, intente recargar la página.</p>
+                </div>
+            `;
+        }
+    }
+});
+</script>
+{% endblock %}
+
+{% block extra_head %}
+<!-- Load Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endblock %}
+{% endblock %} 
