@@ -1,6 +1,3 @@
-# Habitat Real Estate Platform
-
-A modern real estate platform built with Flask, featuring property listings, team management, and an admin dashboard.
 
 ## Features
 
