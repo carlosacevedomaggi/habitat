@@ -50,7 +50,7 @@
                         </select>
                     </div>
                     {# Search button #}
-                    <button type="submit" class="btn btn-accent">
+                    <button type="submit" class="btn">
                         <i class="fas fa-search"></i>
                         Buscar
                     </button>
@@ -122,7 +122,7 @@
                                 <span>{{ property.area }}m²</span>
                             </div>
                         </div>
-                        <a href="{{ url_for('property_detail', id=property.id) }}" class="btn btn-primary">
+                        <a href="{{ url_for('property_detail', id=property.id) }}" class="view-details">
                             Ver Detalles <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
@@ -158,251 +158,212 @@
 </div>
 {% endblock %}
 
-{% block styles %}
+{% block extra_head %}
 {# External Leaflet CSS for map functionality #}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <style>
-/* Properties page specific styles */
-
-/* Page container */
-.properties-page {
+/* Custom property page styles - with high CSS specificity to override main CSS */
+body .properties-page {
     min-height: 100vh;
-    padding-bottom: var(--spacing-lg);
+    padding-bottom: 2rem;
 }
 
-/* Search section styling */
-.search-section {
-    margin-top: -3rem;
-    margin-bottom: var(--spacing-lg);
-    position: relative;
-    z-index: 10;
+/* Hero styling - overriding with high specificity */
+body .hero-section.properties-hero {
+    background: linear-gradient(rgba(40, 46, 75, 0.9), rgba(36, 44, 60, 0.9)), url('/static/images/hero-bg.jpg') center/cover !important;
+    padding: 5rem 2rem !important;
 }
 
-/* Search form layout */
-.search-form {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-    flex-wrap: wrap;
+body .properties-hero .hero-content h1 {
+    font-size: 3.5rem !important;
+    color: white !important;
+    margin-bottom: 1rem !important;
+    font-weight: 700 !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+body .properties-hero .hero-content p.lead {
+    font-size: 1.4rem !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    max-width: 600px !important;
+    margin: 0 auto !important;
+}
+
+/* Search section styling - modernized with high specificity */
+body .search-section {
+    margin-top: -3rem !important;
+    margin-bottom: 3rem !important;
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+/* Search box styling */
+body .search-box.card {
+    background: #242c3c !important; /* Explicitly use the color value */
+    padding: 2.5rem !important;
+    border-radius: 15px !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2) !important;
+    transform: translateY(-20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* Search form layout with high specificity */
+body .search-form {
+    display: flex !important;
+    gap: 1.5rem !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
 }
 
 /* Search input group styling */
-.search-group {
-    flex: 1;
-    min-width: 200px;
-    position: relative;
+body .search-group {
+    flex: 1 !important;
+    min-width: 200px !important;
+    position: relative !important;
 }
 
-/* Search icon styling */
-.search-group i {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--accent-color);
-    z-index: 1;
+/* Search icon styling - properly centered vertically */
+body .search-group i {
+    position: absolute !important;
+    left: 1rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: #c8a773 !important; /* Explicitly use the accent color value */
+    z-index: 1 !important;
+    font-size: 1.2rem !important; /* Slightly larger for better visibility */
+    pointer-events: none !important; /* Prevent icon from interfering with clicks */
 }
 
-/* Search select input styling */
-.search-group select {
-    width: 100%;
-    padding: 1rem 1rem 1rem 3rem;
-    border: 1px solid var(--accent-color);
-    border-radius: 8px;
-    background-color: var(--darker-gray);
-    color: var(--text-color);
-    font-size: 1rem;
-    transition: all 0.3s ease;
+/* Search select styling - updated padding to accommodate icon */
+body .search-group select {
+    width: 100% !important;
+    padding: 1.2rem 1rem 1.2rem 3rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    background-color: #282e4b !important; /* Explicitly use the primary color value */
+    color: white !important;
+    appearance: none !important;
+    cursor: pointer !important;
+    font-size: 1rem !important;
+    transition: all 0.3s ease !important;
+    height: 3.5rem !important; /* Fixed height for consistency */
+    line-height: 1 !important; /* Improve vertical text alignment */
 }
 
 /* Search select focus state */
-.search-group select:focus {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+body .search-group select:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(200, 167, 115, 0.3) !important;
+    border-color: #c8a773 !important; /* Explicitly use the accent color value */
+}
+
+/* Search select option styling */
+body .search-group select option {
+    background-color: #282e4b !important; /* Explicitly use the primary color value */
+    color: white !important;
+    padding: 12px !important;
 }
 
 /* Search button styling */
-.btn-accent {
-    background: linear-gradient(135deg, var(--accent-color), #B4941F);
-    color: var(--dark-gray);
-    padding: 1rem 2rem;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+body .search-form .btn {
+    padding: 1.2rem 2.5rem !important;
+    border: none !important;
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #c8a773, #a08455) !important; /* Explicitly use color values */
+    color: #121212 !important; /* Dark color for text on gold */
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.7rem !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+    letter-spacing: 0.5px !important;
+    min-width: 150px !important;
+    justify-content: center !important;
 }
 
 /* Search button hover effect */
-.btn-accent:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+body .search-form .btn:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Property slideshow container */
-.property-slideshow {
-    height: 100%;
+/* Search button icon */
+body .search-form .btn i {
+    font-size: 1.1rem !important;
+    color: #121212 !important;
 }
 
-/* Slideshow slide styling */
-.slide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.5s ease;
+/* Badge styling */
+body .badge {
+    display: inline-block !important;
+    padding: 0.5rem 1rem !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    border-radius: 5px !important;
 }
 
-/* Active slide state */
-.slide.active {
-    opacity: 1;
-    visibility: visible;
+/* Property type badge styling */
+body .badge-type {
+    background-color: #282e4b !important; /* Explicitly use the primary color value */
+    color: white !important;
 }
 
-/* Property content section */
-.property-content {
-    padding: 1.5rem;
+/* Property price badge styling */
+body .badge-price {
+    background-color: #c8a773 !important; /* Explicitly use the accent color value */
+    color: #121212 !important;
 }
 
-/* Property location styling */
-.property-location {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0.5rem 0 1rem;
+/* View details link styling */
+body .view-details {
+    display: inline-block !important;
+    padding: 0.8rem 1.5rem !important;
+    background: linear-gradient(135deg, #c8a773, #a08455) !important; /* Explicitly use color values */
+    color: #121212 !important; /* Dark color for text on gold */
+    text-decoration: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    margin-top: 1rem !important;
+    transition: all 0.3s ease !important;
+    text-align: center !important;
 }
 
-/* Location icon styling */
-.property-location i {
-    color: var(--accent-color);
-    font-size: 1.2rem;
+/* View details hover effect */
+body .view-details:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2) !important;
+    text-decoration: none !important;
+    color: #121212 !important;
 }
 
-/* Property features layout */
-.property-features {
-    display: flex;
-    gap: 1.5rem;
-    margin: 1rem 0 1.5rem;
-}
-
-/* Individual feature styling */
-.feature {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+/* View details icon */
+body .view-details i {
+    margin-left: 0.5rem !important;
+    color: #121212 !important;
 }
 
 /* Feature icon styling */
-.feature i {
-    color: var(--accent-color);
-    font-size: 1.1rem;
+body .property-features .feature i {
+    color: #c8a773 !important; /* Explicitly use the accent color value */
 }
 
-/* Primary button styling */
-.btn-primary {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: var(--text-color);
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 500;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+/* Location icon styling */
+body .property-location i {
+    color: #c8a773 !important; /* Explicitly use the accent color value */
 }
 
-/* Primary button hover effect */
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    border-color: var(--accent-color);
-}
-
-/* Map popup styling */
-.leaflet-popup-content-wrapper {
-    background: var(--darker-gray);
-    color: var(--text-color);
-    border-radius: 10px;
-    box-shadow: var(--shadow);
-}
-
-/* Map popup arrow styling */
-.leaflet-popup-tip {
-    background: var(--darker-gray);
-}
-
-/* Map popup content styling */
-.map-popup {
-    padding: 0.5rem;
-}
-
-/* Map popup image styling */
-.map-popup img {
-    border-radius: 8px;
-    margin-bottom: 0.8rem;
-}
-
-/* Map popup heading styling */
-.map-popup h4 {
-    color: var(--text-color);
-    margin: 0 0 0.5rem;
-    font-size: 1.1rem;
-}
-
-/* Map popup price styling */
-.map-popup .price {
-    color: var(--accent-color);
-    font-weight: 600;
-    margin-bottom: 0.8rem;
-}
-
-/* Map popup link styling */
-.map-popup-link {
-    background: linear-gradient(135deg, var(--accent-color), #B4941F);
-    color: var(--dark-gray);
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    text-decoration: none;
-    display: inline-block;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-}
-
-/* Map popup link hover effect */
-.map-popup-link:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
-}
-
-/* Responsive styles */
-@media (max-width: 768px) {
-    /* Stack search form elements on mobile */
-    .search-form {
-        flex-direction: column;
-    }
-    
-    .search-group {
-        width: 100%;
-    }
-    
-    /* Full-width search button on mobile */
-    .btn-accent {
-        width: 100%;
-        justify-content: center;
-    }
+/* Section title styling */
+body .section-header h2 {
+    color: #c8a773 !important; /* Explicitly use the accent color value */
 }
 </style>
+{% endblock %}
+
+{% block styles %}
+{# We've moved styles to the extra_head block for better precedence #}
 {% endblock %}
 
 {% block extra_scripts %}
@@ -412,7 +373,89 @@
 // Initialize property cards when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializePropertyCards();
+    
+    // Force apply our styles to make sure they override any other styles
+    forceApplyStyles();
 });
+
+// Function to force apply our styles to specific elements
+function forceApplyStyles() {
+    // Style the search box
+    const searchBox = document.querySelector('.search-box');
+    if (searchBox) {
+        searchBox.style.background = '#242c3c';
+        searchBox.style.borderRadius = '15px';
+        searchBox.style.padding = '2.5rem';
+        searchBox.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.2)';
+        searchBox.style.transform = 'translateY(-20px)';
+        searchBox.style.border = '1px solid rgba(255, 255, 255, 0.05)';
+    }
+    
+    // Style the search selects
+    const selects = document.querySelectorAll('.search-group select');
+    selects.forEach(select => {
+        select.style.backgroundColor = '#282e4b';
+        select.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+        select.style.color = 'white';
+        select.style.borderRadius = '12px';
+        select.style.padding = '1.2rem 1rem 1.2rem 3rem';
+    });
+    
+    // Style the search button
+    const searchBtn = document.querySelector('.search-form .btn');
+    if (searchBtn) {
+        searchBtn.style.background = 'linear-gradient(135deg, #c8a773, #a08455)';
+        searchBtn.style.color = '#121212';
+        searchBtn.style.borderRadius = '12px';
+        searchBtn.style.fontWeight = '600';
+        searchBtn.style.display = 'flex';
+        searchBtn.style.alignItems = 'center';
+        searchBtn.style.padding = '1.2rem 2.5rem';
+    }
+    
+    // Style the view details buttons
+    const viewDetailsLinks = document.querySelectorAll('.view-details');
+    viewDetailsLinks.forEach(link => {
+        link.style.background = 'linear-gradient(135deg, #c8a773, #a08455)';
+        link.style.color = '#121212';
+        link.style.borderRadius = '8px';
+        link.style.padding = '0.8rem 1.5rem';
+        link.style.display = 'inline-block';
+        link.style.textDecoration = 'none';
+        link.style.fontWeight = '600';
+        
+        // Style the icon inside view details button
+        const icon = link.querySelector('i');
+        if (icon) {
+            icon.style.color = '#121212';
+        }
+    });
+    
+    // Style the hero section background
+    const heroSection = document.querySelector('.properties-hero');
+    if (heroSection) {
+        heroSection.style.background = 'linear-gradient(rgba(40, 46, 75, 0.9), rgba(36, 44, 60, 0.9)), url("/static/images/hero-bg.jpg") center/cover';
+    }
+    
+    // Style the badges
+    const typeLabels = document.querySelectorAll('.badge-type');
+    typeLabels.forEach(label => {
+        label.style.backgroundColor = '#282e4b';
+        label.style.color = 'white';
+    });
+    
+    const priceLabels = document.querySelectorAll('.badge-price');
+    priceLabels.forEach(label => {
+        label.style.backgroundColor = '#c8a773';
+        label.style.color = '#121212';
+    });
+    
+    // Style icons
+    const featureIcons = document.querySelectorAll('.feature i, .property-location i');
+    featureIcons.forEach(icon => {
+        icon.style.color = '#c8a773';
+    });
+}
 
 // Function to handle property card slideshows
 function initializePropertyCards() {

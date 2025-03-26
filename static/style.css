@@ -12,10 +12,10 @@
 /* Global CSS Variables */
 :root {
     /* Color Palette */
-    --primary-color: #400000;     /* Very dark red - Main brand color */
-    --primary-dark: #2B0000;      /* Even darker red - For hover states */
-    --secondary-color: #1A0000;   /* Almost black red - For accents */
-    --accent-color: #D4AF37;      /* Gold accent - For highlights and CTAs */
+    --primary-color: #282e4b;     /* Updated from #400000 - Main brand color */
+    --primary-dark: #242c44;      /* Updated from #2B0000 - For hover states */
+    --secondary-color: #242c3c;   /* Updated from #1A0000 - For accents */
+    --accent-color: #c8a773;      /* Updated from #D4AF37 - For highlights and CTAs */
     --text-color: #FFFFFF;        /* White text - Primary text color */
     --light-text: #FFFFFF;        /* White text - Secondary text color */
     --dark-gray: #1A1A1A;         /* Dark background - Main background */
@@ -46,15 +46,16 @@ body {
    Header and Navigation
    ========================================================================== */
 
-/* Fixed header with shadow */
+/* Fixed header with shadow - Updated for better appearance */
 header {
     background-color: var(--darker-gray);
     padding: 1rem 2rem;
-    box-shadow: var(--shadow);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     position: fixed;
     width: 100%;
     top: 0;
     z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* Navigation container */
@@ -66,7 +67,12 @@ nav {
     margin: 0 auto;
 }
 
-/* Logo styling */
+/* Logo styling - Improved */
+.logo {
+    display: flex;
+    align-items: center;
+}
+
 .logo a {
     text-decoration: none;
     color: var(--light-text);
@@ -74,7 +80,25 @@ nav {
     font-weight: 700;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.8rem;
+}
+
+/* Logo styling for PNG image */
+.logo-img {
+    height: 36px;
+    width: auto;
+    margin-right: 0.5rem;
+    transition: transform 0.3s ease;
+    object-fit: contain;
+}
+
+.logo a:hover .logo-img {
+    transform: scale(1.1);
+}
+
+/* Add shadow to the SVG logo */
+.logo-img {
+    filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3));
 }
 
 /* Navigation links list */
@@ -151,15 +175,31 @@ nav {
    Hero Sections
    ========================================================================== */
 
-/* Main hero section */
+/* Main hero section - Updated for consistency across all pages */
 .hero-section {
-    background: linear-gradient(rgba(64, 0, 0, 0.9), rgba(26, 0, 0, 0.9)), var(--primary-color);
+    background: linear-gradient(rgba(40, 46, 75, 0.9), rgba(36, 44, 60, 0.9)), url('/static/images/hero-bg.jpg') center/cover;
     background-size: cover;
     background-position: center;
     padding: 8rem 2rem 6rem;
     text-align: center;
     position: relative;
     margin-top: 60px;
+}
+
+/* Page-specific hero modifications for consistency */
+.about-hero,
+.contact-hero,
+.properties-hero {
+    background: linear-gradient(rgba(40, 46, 75, 0.9), rgba(36, 44, 60, 0.9)), url('/static/images/hero-bg.jpg') center/cover;
+    padding: 8rem 2rem 6rem;
+    text-align: center;
+    margin-top: 60px;
+}
+
+.about-hero .hero-content,
+.contact-hero .hero-content,
+.properties-hero .hero-content {
+    padding: 0;
 }
 
 /* Hero content container */
@@ -199,13 +239,6 @@ nav {
     font-weight: 300;
 }
 
-/* Page-specific hero modifications */
-.about-hero .hero-content,
-.contact-hero .hero-content,
-.properties-hero .hero-content {
-    padding: 4rem 0;
-}
-
 /* ==========================================================================
    Search Components
    ========================================================================== */
@@ -232,7 +265,7 @@ nav {
     padding: 0.8rem;
     border: 1px solid #ddd;
     border-radius: 5px;
-    background-color: var(--light-gray);
+    background-color: #242c3c;
     font-size: 1rem;
 }
 
@@ -761,7 +794,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .properties-hero {
-    background: linear-gradient(rgba(40, 0, 0, 0.8), rgba(40, 0, 0, 0.8)),
+    background: linear-gradient(rgba(40, 46, 75, 0.9), rgba(36, 44, 60, 0.9)),
                 var(--primary-color);
 }
 

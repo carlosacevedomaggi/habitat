@@ -3,6 +3,39 @@
 {# Dynamic page title with fallback values #}
 {% block title %}{{ get_setting('about_title', 'Sobre Nosotros') }} - {{ get_setting('site_name', 'Habitat') }}{% endblock %}
 
+{% block extra_head %}
+<style>
+/* Hero section styling to match home page */
+.about-hero {
+    background: linear-gradient(rgba(40, 46, 75, 0.9), rgba(36, 44, 60, 0.9)), url('/static/images/hero-bg.jpg') center/cover !important;
+    padding: 8rem 2rem !important;
+    text-align: center !important;
+    margin-top: 60px !important;
+}
+
+.about-hero h1 {
+    font-size: 3.5rem !important;
+    color: white !important;
+    margin-bottom: 2rem !important;
+    font-weight: 700 !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Ensure all icons use the new accent color */
+.values-list i,
+.about-text i,
+.team-social a {
+    color: #c8a773 !important;
+}
+
+/* Section headings */
+.about-text h2,
+.team-section h2 {
+    color: #c8a773 !important;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 {# Main about page container #}
 <div class="about-page">
@@ -95,28 +128,20 @@
     display: inline-block;
 }
 
-/* Remove default heading decoration */
-.about-content h1::after {
-    display: none;
-}
-
-/* Section heading styles */
-.about-content h2 {
-    font-size: 2.5rem;
-    color: var(--accent-color);
-    margin-bottom: 2rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    position: relative;
-    display: inline-block;
+/* Hero section styles */
+.about-hero {
+    background: linear-gradient(rgba(40, 46, 75, 0.9), rgba(36, 44, 60, 0.9)),
+                var(--primary-color);
+    padding: 4rem 2rem;
     text-align: center;
 }
 
-/* Remove default section heading decoration */
-.about-content h2::after {
-    display: none;
+/* Section heading styles */
+.about-text h2 {
+    font-size: 2.2rem;
+    color: var(--accent-color);
+    margin: 2rem 0 1rem;
+    font-weight: 600;
 }
 
 /* Main text content styles */
@@ -144,12 +169,6 @@
     gap: 2rem;
 }
 
-/* Section heading styles within text */
-.about-text h2 {
-    color: inherit;
-    margin: 2rem 0 1rem;
-}
-
 /* Values list styles */
 .values-list {
     list-style: none;
@@ -167,7 +186,7 @@
 
 /* Value item icon styles */
 .values-list i {
-    color: #D4AF37;
+    color: var(--accent-color);
 }
 
 /* Team section styles */
@@ -183,17 +202,6 @@
     color: var(--accent-color);
     margin-bottom: 2rem;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    position: relative;
-    display: inline-block;
-    text-align: center;
-}
-
-/* Remove default team section heading decoration */
-.team-section h2::after {
-    display: none;
 }
 
 /* Team members grid layout */
@@ -201,9 +209,10 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 2rem;
+    margin-top: 3rem;
 }
 
-/* Individual team member card styles */
+/* Team card styling */
 .team-card {
     background: var(--darker-gray);
     border-radius: 10px;
@@ -223,7 +232,7 @@
     overflow: hidden;
 }
 
-/* Team member image styles */
+/* Team member image */
 .team-image img {
     width: 100%;
     height: 100%;
@@ -236,53 +245,22 @@
     text-align: center;
 }
 
-/* Team member name styles */
+/* Team member name */
 .team-info h3 {
-    margin: 0;
-    color: white;
-    font-size: 1.2rem;
+    font-size: 1.5rem;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
 }
 
-/* Team member position styles */
+/* Team member position */
 .team-info p {
-    margin: 0.5rem 0 0;
-    color: white;
-    opacity: 0.8;
+    color: var(--accent-color);
+    font-weight: 500;
 }
 
-/* Responsive styles */
-@media (max-width: 768px) {
-    /* Adjust heading size for mobile */
-    .about-content h1 {
-        font-size: 2rem;
-    }
-    
-    /* Adjust text size for mobile */
-    .about-text {
-        font-size: 1rem;
-    }
-    
-    /* Stack team cards on mobile */
-    .team-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Additional text styles */
-.about-subtitle {
-    color: inherit;
-    margin-bottom: 1rem;
-}
-
-/* List icon styles */
-.about-list li i {
-    color: #D4AF37;
-    margin-right: 0.5rem;
-}
-
-/* Section subtitle styles */
-.section-subtitle {
-    color: inherit;
+/* Update accent color in about page */
+.about-section i, .mission-item i, .value-item i, .team-social a {
+    color: var(--accent-color);
 }
 </style>
 {% endblock %} 

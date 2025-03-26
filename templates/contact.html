@@ -108,25 +108,26 @@
 
 /* Hero section styles */
 .contact-hero {
-    background: linear-gradient(rgba(64, 0, 0, 0.9), rgba(26, 0, 0, 0.9)),
-                var(--primary-color);
-    padding: 4rem 2rem;
-    text-align: center;
-    color: var(--text-color);
+    background: linear-gradient(rgba(40, 46, 75, 0.9), rgba(36, 44, 60, 0.9)), url('/static/images/hero-bg.jpg') center/cover !important;
+    padding: 8rem 2rem !important;
+    text-align: center !important;
+    margin-top: 60px !important;
 }
 
 /* Hero heading styles */
 .contact-hero h1 {
-    font-size: 3.5rem;
-    color: var(--text-color);
-    margin-bottom: 2rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    position: relative;
-    display: inline-block;
-    text-align: center;
+    font-size: 3.5rem !important;
+    color: white !important;
+    margin-bottom: 2rem !important;
+    font-weight: 700 !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.contact-hero p {
+    font-size: 1.4rem !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    max-width: 600px !important;
+    margin: 0 auto !important;
 }
 
 /* Remove default heading decoration */
@@ -142,25 +143,6 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 2rem;
-}
-
-/* Form container heading styles */
-.contact-form-container h2 {
-    font-size: 2.5rem;
-    color: var(--accent-color);
-    margin-bottom: 2rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    position: relative;
-    display: inline-block;
-    text-align: center;
-}
-
-/* Remove default form container heading decoration */
-.contact-form-container h2::after {
-    display: none;
 }
 
 /* Contact form styles */
@@ -199,24 +181,29 @@
 .form-group textarea:focus {
     outline: none;
     border-color: var(--accent-color);
+    box-shadow: 0 0 10px rgba(200, 167, 115, 0.2);
 }
 
-/* Submit button styles */
+/* Form submit button styles */
 .form-submit {
-    background-color: var(--primary-color);
-    color: var(--text-color);
-    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #c8a773, #a08455) !important;
+    color: #121212 !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
     border: none;
-    border-radius: 5px;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
     cursor: pointer;
-    font-size: 1rem;
-    width: 100%;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-/* Submit button hover effect */
+/* Form submit button hover effect */
 .form-submit:hover {
-    background-color: var(--accent-color);
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Contact information section styles */
@@ -233,12 +220,7 @@
     color: var(--accent-color);
     margin-bottom: 2rem;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    position: relative;
-    display: inline-block;
-    text-align: center;
+    text-align: left;
 }
 
 /* Remove default contact info heading decoration */
@@ -262,9 +244,9 @@
 
 /* Info item icon styles */
 .info-item i {
-    color: var(--accent-color);
-    width: 20px;
-    margin-bottom: 0.5rem;
+    color: #c8a773 !important;
+    font-size: 2rem;
+    margin-bottom: 1rem;
 }
 
 /* Info item heading styles */
@@ -287,14 +269,33 @@
 
 /* Social link styles */
 .social-link {
-    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background-color: #282e4b !important;
+    color: #c8a773 !important;
+    border-radius: 50%;
+    text-decoration: none;
     font-size: 1.5rem;
-    transition: color 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 /* Social link hover effect */
 .social-link:hover {
-    color: var(--accent-color);
+    background-color: #c8a773 !important;
+    color: #121212 !important;
+    transform: translateY(-5px);
+}
+
+/* Contact form container heading styles */
+.contact-form-container h2 {
+    font-size: 2.5rem;
+    color: #c8a773 !important;
+    margin-bottom: 2rem;
+    font-weight: 700;
+    text-align: left;
 }
 
 /* Responsive styles */
