@@ -18,8 +18,19 @@ from sqlalchemy import func
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__, static_url_path='', static_folder='static')
-app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this to a secure secret key
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "habitat.db")}'  # Use absolute path
+# Read SECRET_KEY from environment variable, provide a default for local dev (but warn)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-here-CHANGE-IN-PRODUCTION')
+# Use DATABASE_URL from environment variable if available (for Heroku/Render),
+# otherwise fall back to local SQLite for development.
+database_url = os.environ.get('DATABASE_URL')
+if database_url:
+    # Ensure the URL starts with postgresql:// if Heroku provides postgres://
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(basedir, "habitat.db")}' # Local fallback
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -766,8 +777,10 @@ def admin_appearance():
 
 def init_db():
     with app.app_context():
+        print("Attempting to create database tables...") # Add print statement
         db.create_all()
-        
+        print("Database tables check/creation complete.") # Add print statement
+
         # Create admin user if it doesn't exist
         admin = User.query.filter_by(username='admin').first()
         if not admin:
@@ -893,5 +906,17 @@ def initialize_default_settings():
         print(f"Error initializing settings: {e}")
 
 if __name__ == '__main__':
-    init_db()
-    app.run(debug=True)
+    # When running locally (python server.py), initialize the DB if needed
+    # On Heroku/Render, this block isn't executed by Gunicorn.
+    # DB initialization should be done via a separate command (e.g., flask db init or a custom script)
+    with app.app_context():
+        # Check if DB exists or needs init. This is a simple check.
+        # A more robust solution might use Flask-Migrate.
+        inspector = db.inspect(db.engine)
+        if not inspector.has_table("user"): # Check for one of your tables
+             print("Database tables not found, initializing...")
+             init_db() # Call the init function if tables don't exist
+        else:
+             print("Database tables already exist.")
+    # Set debug=False when not running directly for local testing
+    app.run(debug=os.environ.get('FLASK_DEBUG', 'False').lower() == 'true')
