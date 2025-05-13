@@ -67,10 +67,22 @@
                             <span>{{ property.property_type }}</span>
                         </div>
 
+                        <div class="property-listing-type-label" style="margin-top: 1rem;">
+                            <span><strong>Tipo de Listado:</strong> {{ property.listing_type }}</span>
+                        </div>
+
                         <div class="description">
                             <h2>Descripción</h2>
                             <p>{{ property.description }}</p>
                         </div>
+
+                        <ul>
+                            <li><i class="fas fa-home"></i> <strong>Tipo de Propiedad:</strong> {{ property.property_type }}</li>
+                            <li><i class="fas fa-tags"></i> <strong>Tipo de Listado:</strong> {{ property.listing_type }}</li>
+                            {% if property.bedrooms %}
+                            <li><i class="fas fa-bed"></i> <strong>Habitaciones:</strong> {{ property.bedrooms }}</li>
+                            {% endif %}
+                        </ul>
                     </div>
 
                     <div class="map-section">
@@ -191,6 +203,19 @@
 }
 
 .property-type-label {
+    display: inline-block;
+    background: linear-gradient(135deg, #242c3c, #282e4b);
+    color: #c8a773;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin: 1.5rem 0;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.property-listing-type-label {
     display: inline-block;
     background: linear-gradient(135deg, #242c3c, #282e4b);
     color: #c8a773;

@@ -91,6 +91,7 @@ class Property(db.Model):
     price = db.Column(db.Float, nullable=False)
     location = db.Column(db.String(200), nullable=False)
     property_type = db.Column(db.String(50), nullable=False)
+    listing_type = db.Column(db.String(50), nullable=False, default='Venta de propiedad')
     bedrooms = db.Column(db.Integer)
     bathrooms = db.Column(db.Integer)
     area = db.Column(db.Float)
@@ -275,19 +276,39 @@ def new_property():
                     image_url = uploaded_path
             
             # Create new property
+            title = request.form.get('title')
+            description = request.form.get('description')
+            price_str = request.form.get('price')
+            price = float(price_str) if price_str else None
+            location = request.form.get('location')
+            property_type = request.form.get('property_type')
+            listing_type = request.form.get('listing_type')
+            bedrooms_str = request.form.get('bedrooms')
+            bedrooms = int(bedrooms_str) if bedrooms_str and bedrooms_str.isdigit() else None
+            bathrooms_str = request.form.get('bathrooms')
+            bathrooms = int(bathrooms_str) if bathrooms_str and bathrooms_str.isdigit() else None
+            area_str = request.form.get('area')
+            area = float(area_str) if area_str else None
+            latitude_str = request.form.get('latitude')
+            latitude = float(latitude_str) if latitude_str else None
+            longitude_str = request.form.get('longitude')
+            longitude = float(longitude_str) if longitude_str else None
+            is_featured = request.form.get('is_featured') == 'on' # Checkbox handling
+            
             property = Property(
-                title=request.form['title'],
-                description=request.form['description'],
-                price=float(request.form['price']),
-                location=request.form['location'],
-                property_type=request.form['property_type'],
-                bedrooms=request.form.get('bedrooms', type=int),
-                bathrooms=request.form.get('bathrooms', type=int),
-                area=request.form.get('area', type=float),
+                title=title,
+                description=description,
+                price=price,
+                location=location,
+                property_type=property_type,
+                listing_type=listing_type,
+                bedrooms=bedrooms,
+                bathrooms=bathrooms,
+                area=area,
                 image_url=image_url,
-                latitude=request.form.get('latitude', type=float),
-                longitude=request.form.get('longitude', type=float),
-                is_featured=bool(request.form.get('is_featured'))
+                latitude=latitude,
+                longitude=longitude,
+                is_featured=is_featured
             )
             db.session.add(property)
             db.session.flush()  # Get property ID before committing
@@ -341,17 +362,24 @@ def edit_property(id):
                         property.image_url = uploaded_path
             
             # Update property details
-            property.title = request.form['title']
-            property.description = request.form['description']
-            property.price = float(request.form['price'])
-            property.location = request.form['location']
-            property.property_type = request.form['property_type']
-            property.bedrooms = request.form.get('bedrooms', type=int)
-            property.bathrooms = request.form.get('bathrooms', type=int)
-            property.area = request.form.get('area', type=float)
-            property.latitude = request.form.get('latitude', type=float)
-            property.longitude = request.form.get('longitude', type=float)
-            property.is_featured = bool(request.form.get('is_featured'))
+            property.title = request.form.get('title')
+            property.description = request.form.get('description')
+            price_str = request.form.get('price')
+            property.price = float(price_str) if price_str else property.price
+            property.location = request.form.get('location')
+            property.property_type = request.form.get('property_type')
+            property.listing_type = request.form.get('listing_type')
+            bedrooms_str = request.form.get('bedrooms')
+            property.bedrooms = int(bedrooms_str) if bedrooms_str and bedrooms_str.isdigit() else property.bedrooms
+            bathrooms_str = request.form.get('bathrooms')
+            property.bathrooms = int(bathrooms_str) if bathrooms_str and bathrooms_str.isdigit() else property.bathrooms
+            area_str = request.form.get('area')
+            property.area = float(area_str) if area_str else property.area
+            latitude_str = request.form.get('latitude')
+            property.latitude = float(latitude_str) if latitude_str else property.latitude
+            longitude_str = request.form.get('longitude')
+            property.longitude = float(longitude_str) if longitude_str else property.longitude
+            property.is_featured = request.form.get('is_featured') == 'on' # Checkbox handling
             
             # Handle additional images
             if 'additional_images' in request.files:
@@ -858,6 +886,11 @@ def initialize_default_settings():
         {'key': 'facebook_url', 'value': '#', 'category': 'social', 'description': 'Facebook profile URL'},
         {'key': 'instagram_url', 'value': '#', 'category': 'social', 'description': 'Instagram profile URL'},
         {'key': 'whatsapp_url', 'value': '#', 'category': 'social', 'description': 'WhatsApp contact URL'},
+        {'key': 'instagram_profile_url', 'value': 'https://instagram.com', 'category': 'social', 'description': 'Instagram Profile URL'},
+        {'key': 'linkedin_profile_url', 'value': 'https://linkedin.com', 'category': 'social', 'description': 'LinkedIn Profile URL'},
+        {'key': 'tiktok_profile_url', 'value': '', 'category': 'social', 'description': 'TikTok Profile URL'},
+        {'key': 'facebook_profile_url', 'value': '', 'category': 'social', 'description': 'Facebook Profile URL'},
+        {'key': 'whatsapp_contact_url', 'value': '', 'category': 'social', 'description': 'WhatsApp Contact URL (e.g., wa.me/123)'},
         
         # Why Choose Us Section
         {'key': 'why_choose_title', 'value': '¿Por Qué Elegirnos?', 'category': 'features', 'description': 'Features section title'},

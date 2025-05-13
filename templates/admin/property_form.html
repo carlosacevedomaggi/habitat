@@ -30,9 +30,20 @@
                 <div class="form-group">
                     <label for="property_type">Tipo de Propiedad*</label>
                     <select id="property_type" name="property_type" required>
-                        <option value="casa" {% if property and property.property_type == 'casa' %}selected{% endif %}>Casa</option>
-                        <option value="apartamento" {% if property and property.property_type == 'apartamento' %}selected{% endif %}>Apartamento</option>
-                        <option value="local" {% if property and property.property_type == 'local' %}selected{% endif %}>Local</option>
+                        <option value="Casa" {% if property and property.property_type == 'Casa' %}selected{% endif %}>Casa</option>
+                        <option value="Apartamento" {% if property and property.property_type == 'Apartamento' %}selected{% endif %}>Apartamento</option>
+                        <option value="Local Comercial" {% if property and property.property_type == 'Local Comercial' %}selected{% endif %}>Local Comercial</option>
+                        <option value="Oficina" {% if property and property.property_type == 'Oficina' %}selected{% endif %}>Oficina</option>
+                        <option value="Terreno" {% if property and property.property_type == 'Terreno' %}selected{% endif %}>Terreno</option>
+                        <option value="Otro" {% if property and property.property_type == 'Otro' %}selected{% endif %}>Otro</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="listing_type">Tipo de Listado*</label>
+                    <select id="listing_type" name="listing_type" required>
+                        <option value="Venta de propiedad" {% if not property or property.listing_type == 'Venta de propiedad' %}selected{% endif %}>Venta de propiedad</option>
+                        <option value="Renta" {% if property and property.listing_type == 'Renta' %}selected{% endif %}>Renta</option>
                     </select>
                 </div>
 

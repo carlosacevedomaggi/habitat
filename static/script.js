@@ -167,4 +167,68 @@ document.addEventListener('DOMContentLoaded', function () {
         // Start the slideshow
         showSlides();
     }
+
+    // Function to handle property card slideshows
+    function initializePropertyCards() {
+        const propertySlideshows = document.querySelectorAll('.property-slideshow');
+        
+        propertySlideshows.forEach(slideshow => {
+            const imageElement = slideshow.querySelector('.slideshow-image');
+            const prevArrow = slideshow.querySelector('.prev-arrow');
+            const nextArrow = slideshow.querySelector('.next-arrow');
+            
+            if (!imageElement || (!prevArrow && !nextArrow)) return; // No image or no arrows
+
+            let images = [];
+            try {
+                images = JSON.parse(slideshow.dataset.images || '[]');
+            } catch (e) {
+                console.error('Error parsing images JSON:', e);
+                return;
+            }
+
+            if (images.length <= 1) {
+                if(prevArrow) prevArrow.style.display = 'none';
+                if(nextArrow) nextArrow.style.display = 'none';
+                return;
+            }
+
+            let currentIndex = parseInt(slideshow.dataset.currentIndex || '0', 10);
+
+            const updateImage = () => {
+                if (images.length > 0) {
+                    imageElement.src = images[currentIndex];
+                    slideshow.dataset.currentIndex = currentIndex;
+                }
+            };
+
+            if (prevArrow) {
+                prevArrow.addEventListener('click', (e) => {
+                    e.preventDefault(); 
+                    currentIndex = (currentIndex - 1 + images.length) % images.length;
+                    updateImage();
+                });
+            }
+
+            if (nextArrow) {
+                nextArrow.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    currentIndex = (currentIndex + 1) % images.length;
+                    updateImage();
+                });
+            }
+            
+            // Initial image update (optional, if first image set by template is always correct)
+            // updateImage(); // Uncomment if needed, but template already sets the first image src
+        });
+    }
+
+    initializePropertyCards(); 
+    // Ensure initMaps is called if it's still needed for other functionalities
+    if (typeof initMaps === 'function' && document.getElementById('map')) {
+        initMaps(); 
+    }
+    if (typeof forceApplyStyles === 'function') {
+        forceApplyStyles();
+    } 
 });

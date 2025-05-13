@@ -1015,3 +1015,53 @@ input::placeholder, select::placeholder, textarea::placeholder {
     display: inline-block;
     text-align: center;
 }
+
+/* Styles for property card slideshow arrows */
+.property-slideshow {
+    position: relative; /* Needed for absolute positioning of arrows */
+    overflow: hidden; /* Ensures arrows don't spill out if image dimensions are odd */
+}
+
+.slideshow-image {
+    display: block; /* Remove extra space below image */
+    width: 100%;
+    height: auto; /* Maintain aspect ratio, or set fixed height like 200px */
+    max-height: 250px; /* Example max height */
+    object-fit: cover; /* Crop image to fit, or use 'contain' */
+}
+
+.slideshow-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.3);
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.property-slideshow:hover .slideshow-arrow {
+    opacity: 1;
+}
+
+.slideshow-arrow.prev-arrow {
+    left: 10px;
+}
+
+.slideshow-arrow.next-arrow {
+    right: 10px;
+}
+
+.slideshow-arrow:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.description h2::after {
+    display: none;
+}

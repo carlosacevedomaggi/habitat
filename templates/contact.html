@@ -71,7 +71,9 @@
                         <div class="info-item">
                             <i class="fas fa-map-marker-alt"></i>
                             <h3>Dirección</h3>
-                            <p>{{ get_setting('contact_address', 'Caracas, Venezuela') }}</p>
+                            <p><i class="fas fa-map-marker-alt"></i> <span>{{ get_setting('contact_address', 'Caracas, Venezuela') }}</span></p>
+                            <p><i class="fab fa-whatsapp"></i> <a href="{{ get_setting('whatsapp_contact_url', '#') }}" target="_blank">Contáctanos por WhatsApp</a></p>
+                            <p><i class="fab fa-tiktok"></i> <a href="{{ get_setting('tiktok_profile_url', '#') }}" target="_blank">Síguenos en TikTok</a></p>
                         </div>
                     </div>
                     {# Social media links #}

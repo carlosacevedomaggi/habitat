@@ -86,9 +86,11 @@
                 <h3>{{ get_setting('site_name', 'Habitat') }}</h3>
                 <p>Tu socio confiable en bienes raíces</p>
                 <div class="social-links">
-                    <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    <a href="{{ get_setting('facebook_profile_url', '#') }}" target="_blank" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="{{ get_setting('instagram_profile_url', '#') }}" target="_blank" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="{{ get_setting('tiktok_profile_url', '#') }}" target="_blank" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                    <a href="{{ get_setting('linkedin_profile_url', '#') }}" target="_blank" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="{{ get_setting('whatsapp_contact_url', '#') }}" target="_blank" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
                 </div>
             </div>
             <div class="footer-section">

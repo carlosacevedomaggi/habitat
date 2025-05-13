@@ -84,15 +84,25 @@
                 <div class="property-card card" data-latitude="{{ property.latitude }}" data-longitude="{{ property.longitude }}" data-id="{{ property.id }}">
                     {# Property image slideshow #}
                     <div class="property-image">
-                        <div class="property-slideshow">
-                            <div class="slide active">
-                                <img src="{{ property.image_url }}" alt="{{ property.title }}">
-                            </div>
-                            {% for image in property.images %}
-                            <div class="slide">
-                                <img src="{{ image.image_url }}" alt="{{ property.title }}">
-                            </div>
+                        {# Create a list of all images #}
+                        {% set all_images = [property.image_url] %}
+                        {% if property.images %}
+                            {% for img in property.images %}
+                                {% set all_images = all_images + [img.image_url] %}
                             {% endfor %}
+                        {% endif %}
+
+                        <div class="property-slideshow" 
+                             data-images='{{ all_images|tojson }}' 
+                             data-current-index="0">
+                            
+                            <img src="{{ property.image_url }}" alt="{{ property.title }}" class="slideshow-image active">
+                            
+                            {# Arrows - only show if more than one image #}
+                            {% if all_images|length > 1 %}
+                                <button class="slideshow-arrow prev-arrow"><i class="fas fa-chevron-left"></i></button>
+                                <button class="slideshow-arrow next-arrow"><i class="fas fa-chevron-right"></i></button>
+                            {% endif %}
                         </div>
                         {# Property type and price badges #}
                         <div class="property-badges">
@@ -103,10 +113,9 @@
                     {# Property details #}
                     <div class="property-content">
                         <h3>{{ property.title }}</h3>
-                        <div class="property-location">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>{{ property.location }}</span>
-                        </div>
+                        <p class="property-location"><i class="fas fa-map-marker-alt"></i> {{ property.location }}</p>
+                        <p class="property-type">{{ property.property_type }}</p>
+                        <p class="property-listing-type"><strong>Tipo:</strong> {{ property.listing_type }}</p>
                         {# Property features #}
                         <div class="property-features">
                             <div class="feature">
