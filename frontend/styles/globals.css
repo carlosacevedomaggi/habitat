@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom global styles */
+
+/* Placeholder for global styles */
+/* Consider using Tailwind CSS or CSS Modules */
+
+body {
+  margin: 0;
+  font-family: sans-serif;
+}
+
+main {
+  padding: 1rem;
+}
+
+header, footer {
+  padding: 1rem;
+  background-color: #f0f0f0;
+}
+
+nav a {
+  margin-right: 1rem;
+} 

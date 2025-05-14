@@ -1,0 +1,318 @@
+# Migration Plan: Habitat Web App (Flask to Next.js & API)
+
+## Part 1: Current Application Analysis (Flask-based)
+
+### 1.1. File Structure Overview:
+
+*   **`server.py`**: The main Flask application file. Contains route definitions, database models (SQLAlchemy), business logic for handling requests, admin panel logic, and database initialization.
+*   **`templates/`**: Contains all Jinja2 HTML templates.
+    *   `admin/`: Templates for the admin section (dashboard, login, forms for properties, users, settings, team).
+    *   `base.html`: Base template with header, footer, navigation, and common CSS/JS links.
+    *   `index.html`: Homepage.
+    *   `properties.html`: Property listing page with filters and pagination.
+    *   `property_detail.html`: Individual property view page.
+    *   `about.html`: About Us page.
+    *   `contact.html`: Contact Us page with a form.
+*   **`static/`**: Contains static assets.
+    *   `images/`: General site images (logos, hero backgrounds).
+    *   `uploads/`: Dynamically uploaded images (properties, team members).
+        *   `properties/`
+        *   `team/`
+    *   `style.css`: Main stylesheet for the application.
+    *   `script.js`: Main JavaScript file for client-side interactions (map, slideshows, alerts).
+*   **`habitat.db`**: SQLite database file.
+*   **`requirements.txt`**: Lists Python dependencies (Flask, SQLAlchemy, Flask-Login, etc.).
+*   **`README.md`**: Project documentation.
+*   **`.env`**: (Not present in provided files but typical for Flask) For environment variables like `SECRET_KEY`, `FLASK_APP`.
+*   **`create_tables.py`**: (Noted in outline but content not provided) Likely a script to initialize database schema, possibly redundant if `init_db()` in `server.py` handles this.
+*   **`Procfile`**: For Heroku deployment, specifies how to run the app (e.g., using gunicorn).
+
+### 1.2. Core Technologies & Tools:
+
+*   **Backend Framework:** Flask (Python)
+*   **Database:** SQLite (via `habitat.db` file)
+*   **ORM:** Flask-SQLAlchemy
+*   **Templating:** Jinja2
+*   **Frontend:** HTML, CSS, JavaScript (served by Flask)
+*   **Authentication:** Flask-Login (for admin section)
+*   **Styling:** Custom CSS (`style.css`), potentially using Font Awesome for icons.
+*   **Mapping:** Leaflet.js (client-side)
+*   **Image Handling:** Python Pillow (implicitly via Flask or custom logic for uploads).
+*   **Deployment (suggested in README):** Gunicorn, Nginx, Supervisor for VPS; PaaS like Heroku.
+
+### 1.3. Key Functionalities (Expanded):
+
+*   **Public User Features:**
+    *   **Homepage (`index.html`):** Displays featured properties, potentially a hero section, and calls to action. Data typically fetched by the `index()` route in `server.py`.
+    *   **Property Listings (`properties.html`):**
+        *   Shows a paginated grid of all available properties.
+        *   Integrates search/filter capabilities (property type, location, price range). Filter parameters are handled by the `properties()` route in `server.py`.
+        *   Each property card displays key information (image, title, location, price, type, listing type, basic features like bedrooms/bathrooms/area).
+        *   Image carousel on each card for multiple images (JS driven).
+    *   **Property Detail (`property_detail.html`):**
+        *   Accessed via a dynamic route like `/property/<id>`.
+        *   Shows all details of a single property: title, full description, price, location, all features, listing type, multiple images with a gallery/slideshow, and an embedded map (Leaflet.js) showing its location based on latitude/longitude.
+        *   Includes a contact form specific to that property.
+    *   **About Us (`about.html`):** Displays company information, mission, vision, values, and lists team members with their photos, names, and positions. Content largely driven by `SiteSettings` and `TeamMember` data.
+    *   **Contact Us (`contact.html`):**
+        *   Provides contact information (address, phone, email from `SiteSettings`).
+        *   Includes a general contact form for inquiries. Form submissions are handled by the `contact()` route in `server.py` and saved to the `Contact` table.
+        *   Displays social media links (TikTok, WhatsApp, etc. from `SiteSettings`).
+
+*   **Admin Panel Features (`/admin` - primarily within `templates/admin/` and handled by routes in `server.py` prefixed with `/admin/`):**
+    *   **Authentication:** Secure login (`admin/login.html`) for administrators/editors using Flask-Login. Session management protects admin routes.
+    *   **Dashboard (`admin/dashboard.html`):** Central landing page for admins, potentially showing site statistics or quick links (currently basic).
+    *   **Property Management (`admin/property_form.html`, admin routes for properties):**
+        *   **Full CRUD:**
+            *   **Create:** Add new properties with all details.
+            *   **Read:** View list of all properties (likely on dashboard or a dedicated manage page).
+            *   **Update:** Edit existing property details.
+            *   **Delete:** Remove properties from the system.
+        *   **Property Attributes (Listing Variables) Managed:**
+            *   `id` (Integer, Primary Key, Auto-generated)
+            *   `title` (String, e.g., "Casa Moderna en Altamira")
+            *   `description` (Text)
+            *   `price` (Float)
+            *   `location` (String, e.g., "Altamira, Caracas")
+            *   `property_type` (String, e.g., "Casa", "Apartamento", "Local Comercial")
+            *   `listing_type` (String, "Venta de propiedad" or "Renta")
+            *   `bedrooms` (Integer, nullable)
+            *   `bathrooms` (Integer, nullable)
+            *   `area` (Float, nullable, e.g., in m²)
+            *   `image_url` (String, path to main image)
+            *   `images` (Relationship to `PropertyImage` table for multiple additional images)
+            *   `latitude` (Float, nullable)
+            *   `longitude` (Float, nullable)
+            *   `created_at` (DateTime, Auto-generated)
+            *   `is_featured` (Boolean, to mark property for homepage display)
+        *   **Image Handling:** Upload of a main image and multiple additional images for each property. Files are saved to the `static/uploads/properties/` directory, and their paths are stored.
+    *   **User Management (`admin/users.html`, `admin/user_form.html`):**
+        *   Full CRUD for admin/editor users.
+        *   Managed User Attributes: `id`, `username`, `email`, `password_hash` (set via `set_password`), `is_admin`, `is_editor`.
+    *   **Site Settings Management (`admin/settings.html`):**
+        *   Allows admins to update various site-wide configurations stored in the `SiteSettings` table. These are key-value pairs, often grouped by category.
+        *   **Examples of Text Settings Managed:**
+            *   `site_name` (e.g., "Habitat")
+            *   `contact_email`, `contact_phone`, `contact_address`
+            *   Social Media URLs: `facebook_profile_url`, `instagram_profile_url`, `linkedin_profile_url`, `tiktok_profile_url`, `whatsapp_contact_url`
+            *   "Why Choose Us" section: `feature_1_title`, `feature_1_text`, `feature_1_icon` (Font Awesome class), and similarly for features 2 & 3.
+            *   About Page content: `about_title`, `about_subtitle`, `about_description`, `about_history_title`, `about_history_text`, etc.
+            *   Contact Page content: `contact_title`, `contact_subtitle`.
+            *   Typography: `primary_font` (e.g., "Montserrat"), `secondary_font` (e.g., "Raleway"), `base_font_size`.
+            *   Theme Colors: `primary_color`, `secondary_color`, `accent_color`, `text_color`, `background_color`.
+    *   **Team Member Management (`admin/team.html`, uses `property_form.html` or a similar form for add/edit):**
+        *   Full CRUD for team members.
+        *   Managed Team Member Attributes: `id`, `name`, `position`, `image_url` (uploaded to `static/uploads/team/`), `order`.
+    *   **Contact Submissions:** Admins can view submitted contact forms (likely listed on the dashboard or a dedicated page) and generate a PDF for a specific contact inquiry.
+
+*   **Other Data Managed:**
+    *   **`PropertyImage`:** Stores paths and order for additional property images, linked to `Property`.
+    *   **`Contact`:** Stores messages submitted through contact forms, potentially linked to a `Property`.
+
+*   **Important Functions/Route Handlers in `server.py` (Conceptual Summary):**
+    *   **`index()`:** Serves the homepage, fetches featured properties.
+    *   **`properties()`:** Handles the property listing page, including filtering logic and pagination.
+    *   **`property_detail(id)`:** Fetches and displays a single property by its ID.
+    *   **`about()`:** Serves the About Us page, fetches team members and relevant site settings.
+    *   **`contact()`:** Handles GET requests for the contact page and POST requests for form submissions.
+    *   **Admin Routes (e.g., `admin()`, `new_property()`, `edit_property(id)`, `admin_users()`, `admin_settings()`, `admin_team()`):** Handle all CRUD operations and logic for the admin panel, protected by `@login_required` and sometimes `@admin_required`.
+    *   **`login()` & `logout()`:** Manage admin user sessions.
+    *   **`init_db()` & `initialize_default_settings()`:** Set up the database and populate initial site settings if the DB is new.
+    *   **`allowed_file()` & `save_uploaded_file()`:** Utility functions for handling file uploads.
+    *   **`load_user()`:** Flask-Login user loader.
+    *   **`get_setting()` (context processor):** Makes site settings available to all templates.
+    *   **`contact_pdf(id)`:** Generates a PDF for a contact message.
+
+*   **HTML Structure (Jinja2 Templating):**
+    *   **`base.html`:** Acts as the master template. It defines the overall HTML structure (doctype, head, body, header, main content block, footer). Includes common CSS, JavaScript files, and meta tags. Other templates extend `base.html`.
+    *   **Template Inheritance:** Pages like `index.html`, `properties.html`, etc., use `{% extends "base.html" %}` and override blocks like `{% block title %}` and `{% block content %}` to inject their specific content into the base layout.
+    *   **Includes:** Common UI parts might be in separate files and included using `{% include "..." %}` (e.g., a navigation bar snippet, though in this app it seems integrated into `base.html`).
+    *   **Dynamic Data Rendering:** Jinja2 expressions `{{ variable }}` are used to display dynamic data passed from Flask routes (e.g., `{{ property.title }}`, `{{ get_setting('site_name') }}`).
+    *   **Control Structures:** Jinja2 loops (`{% for item in items %}`) and conditionals (`{% if condition %}`) are used to render lists of properties, images, team members, and conditionally display elements.
+
+---
+
+## Part 2: Proposed Application Structure (Next.js Frontend + Python API Backend)
+
+### 2.1. File Structure Overview (Conceptual):
+
+**A. Frontend (Next.js Project - e.g., in a `/frontend` directory):**
+
+*   **`pages/`**: Defines routes and contains React components for each page.
+    *   `index.js`: Homepage.
+    *   `properties/index.js`: Property listing page.
+    *   `properties/[id].js`: Dynamic route for single property details.
+    *   `about.js`: About Us page.
+    *   `contact.js`: Contact Us page.
+    *   `admin/login.js`: Admin login page.
+    *   `admin/dashboard.js`: Admin dashboard.
+    *   `admin/properties/index.js`: Admin property list.
+    *   `admin/properties/new.js`: Form to create new property.
+    *   `admin/properties/edit/[id].js`: Form to edit property.
+    *   `admin/users/index.js`, `admin/users/new.js`, `admin/users/edit/[id].js`
+    *   `admin/settings.js`
+    *   `admin/team/index.js`, `admin/team/new.js`, `admin/team/edit/[id].js`
+*   **`components/`**: Reusable React components.
+    *   `Layout.js`: Main site layout (header, footer).
+    *   `Header.js`, `Footer.js`, `Navigation.js`
+    *   `PropertyCard.js`: Component for displaying individual properties in a list.
+    *   `PropertyFilter.js`: Component for property search/filter UI.
+    *   `ImageCarousel.js`: Reusable image slideshow component.
+    *   `Map.js`: React wrapper for Leaflet or a React-specific map component.
+    *   `AdminLayout.js`: Layout for the admin section.
+    *   Various form components.
+*   **`public/`**: Static assets directly served.
+    *   `images/`: Site logos, placeholder images, icons (if not using an icon font directly).
+    *   `favicon.ico`, etc.
+*   **`styles/`**: Global styles and CSS Modules or Tailwind CSS configuration.
+    *   `globals.css`
+    *   Component-specific CSS module files (e.g., `PropertyCard.module.css`).
+*   **`lib/` or `utils/`**: Helper functions, API client for fetching data, auth utilities.
+*   **`services/` or `api/` (frontend context):** Functions for making API calls to the backend.
+*   **`next.config.js`**: Next.js configuration.
+*   **`package.json`**: Frontend project dependencies and scripts.
+*   **`.env.local`**: Environment variables (e.g., API base URL).
+
+**B. Backend (Python API Project - e.g., in an `/backend` directory):**
+
+*   **`main.py` or `app.py`**: Main application file for Flask/FastAPI.
+*   **`models.py`**: SQLAlchemy models (similar to current, but adapted for PostgreSQL and potentially refined).
+*   **`schemas.py`**: (If using FastAPI/Pydantic) Data validation and serialization schemas.
+*   **`routers/` or `views/` or `endpoints/`**: Directory for API route definitions.
+    *   `properties.py`: API endpoints for properties.
+    *   `users.py`: API endpoints for admin users & authentication.
+    *   `settings.py`: API endpoints for site settings.
+    *   `team.py`: API endpoints for team members.
+    *   `contact.py`: API endpoint for contact form submissions.
+    *   `uploads.py`: API endpoint for handling image uploads.
+*   **`crud/` or `services/` (backend context):** Business logic for database operations.
+*   **`core/`**: Core configurations, database connection setup.
+    *   `config.py`: Application settings (database URL, secret key).
+    *   `database.py`: SQLAlchemy engine, session setup.
+*   **`auth/`**: Authentication logic (JWT generation, verification, protected route decorators).
+*   **`static/uploads/`**: (If backend handles uploads directly and serves them, though ideally a dedicated storage like S3 would be used in production).
+*   **`requirements.txt`**: Python dependencies (Flask/FastAPI, SQLAlchemy, psycopg2-binary, python-jose for JWT, etc.).
+*   **`Dockerfile`**: For containerizing the backend API.
+*   **`.env`**: Backend environment variables.
+
+### 2.2. Core Technologies & Tools (Proposed):
+
+*   **Frontend Framework:** Next.js (React)
+*   **Backend API Framework:** Flask or FastAPI (Python)
+*   **Database:** PostgreSQL
+*   **ORM:** SQLAlchemy (can still be used with PostgreSQL)
+*   **API Design:** RESTful principles
+*   **Styling:** Tailwind CSS or CSS Modules / Styled Components
+*   **Authentication:** JWT (JSON Web Tokens)
+*   **State Management (Frontend, if complex):** Zustand, Redux Toolkit, or React Context API.
+*   **Data Fetching (Frontend):** SWR or React Query for client-side data fetching and caching from the API. Next.js data fetching methods (`getServerSideProps`, `getStaticProps`, Route Handlers).
+*   **Image Handling:**
+    *   Backend: API endpoint for receiving uploads, storing to cloud storage (e.g., AWS S3, Cloudinary) or a persistent volume.
+    *   Frontend: Next.js `<Image>` component for optimization.
+*   **Mapping:** Leaflet.js (possibly with a React wrapper like `react-leaflet`) or Mapbox GL JS.
+*   **Deployment:**
+    *   Frontend (Next.js): Vercel, Netlify, AWS Amplify.
+    *   Backend (Python API): Docker container on AWS ECS, Google Cloud Run, Heroku, Render.
+    *   Database (PostgreSQL): Managed service like AWS RDS, Google Cloud SQL, Heroku Postgres.
+
+### 2.3. Mapping Functionalities to New Structure:
+
+*   **Public User Features:**
+    *   **View Pages (Home, Properties, Detail, About, Contact):**
+        *   Next.js pages in the `pages/` directory will render these.
+        *   Data fetched from the backend API using Next.js data fetching methods or client-side fetching libraries (SWR/React Query).
+        *   React components in `components/` will be used to build the UI.
+    *   **Property Filtering/Pagination:** Can be implemented client-side in Next.js after initial data load, or server-side via API query parameters.
+    *   **Image Carousel:** Rebuilt as a React component in `components/ImageCarousel.js`.
+    *   **Map:** `components/Map.js` will integrate Leaflet/other map library, fetching coordinates from API.
+    *   **Contact Form:** Submits data to a `/contact` endpoint on the backend API.
+*   **Admin Panel Features:**
+    *   Could be a separate Next.js app or a section within the main app (e.g., under `/admin` route group).
+    *   **Login:** `/admin/login.js` page posting credentials to an API endpoint (e.g., `/api/auth/login`) which returns a JWT. Token stored in localStorage/httpOnly cookie.
+    *   **CRUD Operations:** Admin pages (e.g., `admin/properties/index.js`) will fetch data from protected API endpoints. Forms (e.g., `admin/properties/new.js`) will submit data to corresponding API endpoints, including the JWT for authorization.
+    *   **Image Uploads:** Admin forms will send image files to a dedicated API upload endpoint. The API saves the file and returns its URL, which is then associated with the property/team member.
+*   **Dynamic Content (Site Settings):**
+    *   Backend API provides an endpoint (e.g., `/api/settings`) to fetch all site settings.
+    *   Next.js frontend fetches these settings, possibly at build time (`getStaticProps`) for static parts or client-side for dynamic updates. Settings used to populate footer, contact info, theme variables (via CSS variables updated by JS or server-rendered).
+*   **PDF Generation:**
+    *   An API endpoint (e.g., `/api/contacts/{id}/pdf`) on the backend would handle PDF generation using ReportLab, similar to the current setup but triggered via an API call.
+
+### 2.4. How it Works (High-Level Flow):
+
+1.  **User Request (Frontend):** User accesses a page (e.g., `/properties`) in their browser.
+2.  **Next.js:**
+    *   If SSR/SSG: Next.js server fetches necessary data from the backend API during request/build time.
+    *   Renders the React components into HTML, sends to the browser.
+    *   Client-side React takes over for interactivity (image carousels, map interactions, further client-side filtering).
+3.  **API Interaction (Frontend <-> Backend):**
+    *   For dynamic data or actions (e.g., submitting contact form, admin actions), the Next.js frontend makes HTTP requests (GET, POST, PUT, DELETE) to the Python backend API.
+    *   Authenticated requests (admin) include the JWT in the Authorization header.
+4.  **Backend API (Python - Flask/FastAPI):**
+    *   Receives requests, validates data (and JWT for protected routes).
+    *   Interacts with the PostgreSQL database via SQLAlchemy (or other ORM).
+    *   Performs business logic.
+    *   Returns JSON responses to the Next.js frontend.
+5.  **Database (PostgreSQL):** Stores all application data.
+6.  **Static Assets & Uploads:**
+    *   Frontend static assets (`images/`, CSS, JS bundles) served by Next.js (often via CDN in production).
+    *   Uploaded images ideally stored in cloud storage (e.g., S3) and URLs stored in the database. The API would provide these URLs to the frontend. 
+
+## Part 3: Migration Progress (Updated based on current analysis)
+
+### Current Status:
+
+*   **Backend Foundation:**
+    *   **DONE:** FastAPI app setup, SQLAlchemy models, Pydantic schemas, core config/DB utilities.
+    *   **DONE:** CRUD logic for Properties, Contacts, Team, SiteSettings in `backend/crud/`.
+    *   **DONE:** Authentication utilities (`backend/auth/utils.py`) for password hashing, JWT, OAuth2.
+    *   **DONE:** Routers for properties, team, settings, contact, users, and uploads are implemented and integrated into `backend/main.py`.
+        *   `backend/routers/users.py` has been refactored to use actual `crud_user`, `auth_utils`, and `schemas`.
+        *   `backend/routers/uploads.py` has been refactored to use config settings, actual auth, and proper schemas; static file serving is configured in `main.py`.
+*   **Frontend Foundation:**
+    *   **DONE:** Next.js app setup with TailwindCSS.
+    *   **DONE:** Admin login page (`frontend/pages/admin/login.js`) implemented with API calls and JWT handling.
+    *   **PARTIAL:** Basic API integration for properties list and site settings on the public frontend.
+    *   **TODO:** Most admin panel pages (beyond login) and many public-facing components are placeholders.
+*   **File Uploads:**
+    *   **BACKEND DONE:** Backend router (`uploads.py`) and `main.py` integration for file uploads are complete.
+    *   **FRONTEND TODO:** Frontend implementation for uploading files in admin forms is missing.
+*   **Database Management:**
+    *   **TODO:** Alembic for migrations is not set up.
+
+### What's Not Working / Needs Immediate Attention:
+
+1.  **Frontend Admin Panel (Post-Login)**:
+    *   An `AdminLayout.js` component is needed for protected routing (checking JWT) and providing a common navigation structure (sidebar/header) for the admin area.
+    *   CRUD UIs for managing Properties, Users, Team, and Site Settings are not yet implemented in the Next.js frontend. This includes forms for creating/editing, lists for viewing, and functionality for deleting items, all interacting with the backend API.
+    *   File upload integration on the frontend admin forms.
+2.  **Frontend Public UI & Components**:
+    *   Many frontend pages (e.g., `about.js`, `properties/[id].js`) and components (`ImageCarousel.js`, `Map.js`) are still placeholders or need to be fully developed with API data and styling.
+    *   PDF generation for contacts needs a frontend trigger.
+3.  **Database Migrations**: Lack of Alembic makes schema changes risky and manual.
+4.  **Comprehensive Testing**: Unit, integration, and E2E tests for both frontend and backend are needed.
+5.  **Deployment Setup**: Finalize Docker configurations, CI/CD pipelines.
+
+### Next Steps (Prioritized):
+
+1.  **Implement `AdminLayout.js` for Frontend Admin Panel**:
+    *   Create `frontend/components/AdminLayout.js`.
+    *   This layout should check for a JWT in `localStorage` on mount.
+    *   If no token (or if token verification fails - advanced), redirect to `/admin/login`.
+    *   Include basic navigation links (e.g., Dashboard, Properties, Users, Settings, Logout).
+    *   The Logout button should clear the JWT and redirect to login.
+    *   Wrap `frontend/pages/admin/dashboard.js` (and future admin pages) with this layout.
+2.  **Thoroughly Test Backend Endpoints**:
+    *   Specifically test the recently refactored `/api/users/**` and `/api/uploads/**` endpoints using a tool like Postman or by building out small frontend test components to ensure they work as expected before building full UI.
+3.  **Build out Frontend Admin Panel CRUD (Start with Properties)**:
+    *   Create `frontend/pages/admin/properties/index.js` to list properties (fetch from `/api/properties`).
+    *   Create `frontend/pages/admin/properties/new.js` and `frontend/pages/admin/properties/edit/[id].js` with forms to create/update properties, including image uploads, calling the respective backend API endpoints.
+    *   Implement delete functionality.
+4.  **Develop Key Frontend Components & Public Pages**:
+    *   Implement functional `ImageCarousel.js` and `Map.js` components.
+    *   Build out the property detail page (`frontend/pages/properties/[id].js`).
+    *   Develop the "About Us" page (`frontend/pages/about.js`).
+5.  **Setup Database Migrations**: Integrate Alembic into the backend project.
+6.  **Testing**: Start implementing unit tests for backend API endpoints and basic frontend component tests.
+7.  **Deployment Preparations**: Review Docker configurations and plan CI/CD.
+
+--- 

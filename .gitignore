@@ -113,4 +113,18 @@ habitat.db
 habitat.db-journal
 
 # Optional: Other config files if they contain secrets
-# config.py 
+# config.py
+
+node_modules/
+
+# build artefacts / caches
+frontend/.next/
+frontend/.next-cache/
+*.log
+
+# Python virtual-envs
+env/
+venv/
+
+# mirror repo created while cleaning history
+habitat.git.bfg-temp/ 

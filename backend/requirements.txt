@@ -1,0 +1,35 @@
+# Main FastAPI and Uvicorn
+fastapi>=0.100.0 # Or specific version
+uvicorn[standard]>=0.23.2 # For serving the app, [standard] includes performance extras
+
+# SQLAlchemy and Database Driver
+sqlalchemy>=2.0.0 # For ORM
+psycopg2-binary # PostgreSQL driver (use psycopg2 if compiling from source)
+alembic # For database migrations (recommended)
+# databases[postgresql] # Alternative async database library (if using async apg)
+# alembic # For database migrations (recommended)
+
+# Pydantic (usually comes with FastAPI, but good to specify for settings)
+pydantic>=2.0.0
+pydantic-settings # For settings management from .env files
+
+# Authentication & Security
+python-jose[cryptography]>=3.3.0 # For JWT handling
+passlib[bcrypt]>=1.7.4 # For password hashing
+# python-multipart # For handling form data (file uploads), often needed by FastAPI
+# Needed for OAuth2PasswordRequestForm
+python-multipart
+email-validator>=2.0.0  # required for pydantic EmailStr
+
+# CORS
+# fastapi.middleware.cors is built-in, no separate package needed
+
+# PDF Generation (if used)
+# reportlab
+
+# Other Utilities
+# python-dotenv # If not using pydantic-settings for .env loading
+
+# For development/testing (optional)
+# httpx # For testing API endpoints
+# pytest 
