@@ -1,9 +1,14 @@
 from pydantic_settings import BaseSettings
 import os
+from typing import Optional
+from pathlib import Path
 
 # Load .env file if present (using python-dotenv implicitly via Pydantic)
 # from dotenv import load_dotenv
 # load_dotenv()
+
+# Determine project root (two levels up from this file)
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 class Settings(BaseSettings):
     # Application Settings
@@ -14,7 +19,10 @@ class Settings(BaseSettings):
 
     # Database Settings (PostgreSQL example)
     # Default to SQLite for easy local development; override with PostgreSQL via env var
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./habitat_api.db")
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL",
+        f"sqlite:///{str(BASE_DIR / 'habitat_api.db')}"
+    )
     # Example PostgreSQL: postgresql+psycopg2://user:password@localhost/habitatdb
 
     # JWT Settings
@@ -29,7 +37,14 @@ class Settings(BaseSettings):
     # Upload Directory (if handling uploads locally)
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "backend/static/uploads")
 
-    # Email Settings (if sending emails)
+    # Email Settings (SMTP)
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: Optional[int] = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASS: Optional[str] = None
+    SMTP_FROM_EMAIL: Optional[str] = None # Optional: if you want a specific sender email
+
+    # Old Email Settings (commented out, can be removed if not used)
     # MAIL_USERNAME: str = os.getenv("MAIL_USERNAME", "")
     # MAIL_PASSWORD: str = os.getenv("MAIL_PASSWORD", "")
     # MAIL_FROM: str = os.getenv("MAIL_FROM", "")
@@ -39,8 +54,8 @@ class Settings(BaseSettings):
     # MAIL_SSL_TLS: bool = os.getenv("MAIL_SSL_TLS", "False").lower() in ("true", "1", "t")
 
     class Config:
-        # If using a .env file, specify its name (optional)
-        env_file = ".env"
+        # Load .env from project root
+        env_file = str(BASE_DIR / ".env")
         env_file_encoding = 'utf-8'
         case_sensitive = True
 

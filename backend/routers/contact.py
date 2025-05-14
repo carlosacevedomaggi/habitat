@@ -17,25 +17,25 @@ def create_submission(submission: schemas.ContactCreate, db: Session = Depends(g
     return crud_contact.create_contact(db, submission)
 
 @router.get("/", response_model=List[schemas.Contact])
-def list_submissions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_admin: models.User = Depends(auth_utils.require_admin)):
+def list_submissions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(auth_utils.require_staff)):
     return crud_contact.get_contacts(db, skip, limit)
 
 @router.get("/{submission_id}", response_model=schemas.Contact)
-def get_submission(submission_id: int, db: Session = Depends(get_db), current_admin: models.User = Depends(auth_utils.require_admin)):
+def get_submission(submission_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth_utils.require_staff)):
     db_contact = crud_contact.get_contact(db, submission_id)
     if not db_contact:
         raise HTTPException(status_code=404, detail="Submission not found")
     return db_contact
 
 @router.put("/{submission_id}", response_model=schemas.Contact)
-def update_submission(submission_id: int, submission_update: schemas.ContactUpdate, db: Session = Depends(get_db), current_admin: models.User = Depends(auth_utils.require_admin)):
+def update_submission(submission_id: int, submission_update: schemas.ContactUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(auth_utils.require_manager)):
     db_contact = crud_contact.get_contact(db, submission_id)
     if not db_contact:
         raise HTTPException(status_code=404, detail="Submission not found")
     return crud_contact.update_contact(db, db_contact, submission_update)
 
 @router.delete("/{submission_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_submission(submission_id: int, db: Session = Depends(get_db), current_admin: models.User = Depends(auth_utils.require_admin)):
+def delete_submission(submission_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth_utils.require_manager)):
     db_contact = crud_contact.get_contact(db, submission_id)
     if not db_contact:
         raise HTTPException(status_code=404, detail="Submission not found")
@@ -49,7 +49,7 @@ def delete_submission(submission_id: int, db: Session = Depends(get_db), current
 def generate_contact_pdf_route(
     submission_id: int,
     db: Session = Depends(get_db),
-    current_admin: models.User = Depends(auth_utils.require_admin),
+    current_user: models.User = Depends(auth_utils.require_manager),
 ):
     """Generate a PDF for a contact submission (Protected)."""
     submission = crud_contact.get_contact(db, submission_id)
@@ -85,7 +85,7 @@ def send_contact_email(submission, recipient_email: str):
 def forward_submission_via_email(
     submission_id: int,
     db: Session = Depends(get_db),
-    current_admin: models.User = Depends(auth_utils.require_admin),
+    current_user: models.User = Depends(auth_utils.require_manager),
     recipient_email: str | None = Body(None, embed=True),
 ):
     """Send a submission via email to the configured contact email in settings."""
@@ -99,7 +99,7 @@ def forward_submission_via_email(
             recipient_email = settings_row.value.get("text") if isinstance(settings_row.value, dict) else settings_row.value
         if not recipient_email:
             # default to current admin's email
-            recipient_email = current_admin.email
+            recipient_email = current_user.email
         if not recipient_email:
             raise HTTPException(status_code=400, detail="No recipient email available.")
     try:

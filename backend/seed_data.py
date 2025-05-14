@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from .core.database import SessionLocal
 from . import models
 from .auth import utils as auth_utils
+from .models import Role
 
 # ---------------------------------------------------------------------------
 # Configuration – feel free to tweak
@@ -260,8 +261,7 @@ def seed_admin(db: Session):
         username=ADMIN_USERNAME,
         email=ADMIN_EMAIL,
         password_hash=hashed_pwd,
-        is_admin=True,
-        is_editor=True,
+        role=Role.admin,
     )
     db.add(admin)
     db.commit()

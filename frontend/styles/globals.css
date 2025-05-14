@@ -23,4 +23,12 @@ header, footer {
 
 nav a {
   margin-right: 1rem;
+}
+
+/* Force dark text on all form controls */
+@layer base {
+  input, textarea, select {
+    @apply bg-gray-100 text-gray-900 placeholder-gray-500 border border-gray-300 shadow-sm p-2.5 !important;
+    -webkit-text-fill-color:#111827 !important; /* Safari/Chrome override */
+  }
 } 

@@ -1,7 +1,8 @@
 from sqlalchemy import (Boolean, Column, Integer, String, Text, Float, DateTime, 
-                          ForeignKey, JSON)
+                          ForeignKey, JSON, Enum)
 from sqlalchemy.orm import relationship, declarative_base
 from sqlalchemy.sql import func
+import enum
 
 # Using declarative_base() from SQLAlchemy
 Base = declarative_base()
@@ -13,6 +14,11 @@ class SiteSettings(Base):
     value = Column(JSON) # Store complex settings like colors, fonts as JSON
     category = Column(String, index=True, default='General') # e.g., General, Contact, Theme, SEO
 
+class Role(enum.Enum):
+    admin = "admin"
+    manager = "manager"
+    staff = "staff"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -20,8 +26,7 @@ class User(Base):
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
-    is_admin = Column(Boolean, default=False)
-    is_editor = Column(Boolean, default=True)
+    role = Column(Enum(Role), default=Role.staff, nullable=False)
     # Add fields like created_at, updated_at if needed
     # created_at = Column(DateTime(timezone=True), server_default=func.now())
     # updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -79,7 +84,9 @@ class Contact(Base):
     property_id = Column(Integer, ForeignKey("properties.id"), nullable=True) # Link to specific property if applicable
     submitted_at = Column(DateTime(timezone=True), server_default=func.now())
     is_read = Column(Boolean, default=False)
+    assigned_to_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
+    assigned_to = relationship("User")
     # Add relationship back to property if needed
     # property = relationship("Property")
 

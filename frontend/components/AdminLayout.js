@@ -28,7 +28,13 @@ export default function AdminLayout({ children, title = 'Admin Panel' }) {
         });
 
         if (res.ok) {
-          // const userData = await res.json(); // Optional: get user data
+          const userData = await res.json();
+          // If user is not admin, deny access
+          if (userData?.role !== 'admin') {
+            console.warn('Non-admin user attempted to access admin panel');
+            router.push('/'); // Redirect to home or another page
+            return;
+          }
           // setAdminUser(userData);
           setIsAuthenticated(true);
         } else {

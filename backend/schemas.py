@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, HttpUrl
 from typing import List, Optional
 from datetime import datetime
+from enum import Enum
 
 # Schemas define the shape of data for API requests and responses
 
@@ -58,13 +59,19 @@ class Property(PropertyBase):
     class Config:
         orm_mode = True
 
-# ------------- User Schemas ------------- 
+# ------------- Role Enum -------------
+
+class Role(str, Enum):
+    admin = "admin"
+    manager = "manager"
+    staff = "staff"
+
+# ------------- User Schemas (Role-based) -------------
 
 class UserBase(BaseModel):
     username: str
     email: EmailStr
-    is_admin: Optional[bool] = False
-    is_editor: Optional[bool] = True
+    role: Optional[Role] = Role.staff
 
 class UserCreate(UserBase):
     password: str
@@ -72,8 +79,7 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None
-    is_admin: Optional[bool] = None
-    is_editor: Optional[bool] = None
+    role: Optional[Role] = None
     password: Optional[str] = None
 
 class User(UserBase):
@@ -143,6 +149,7 @@ class ContactBase(BaseModel):
     subject: Optional[str] = None
     message: str
     property_id: Optional[int] = None
+    assigned_to_id: Optional[int] = None
 
 class ContactCreate(ContactBase):
     pass
@@ -154,6 +161,7 @@ class Contact(ContactBase):
     id: int
     submitted_at: datetime
     is_read: bool
+    assigned_to: Optional[User] = None # To hold the related User object
     class Config:
         orm_mode = True
 

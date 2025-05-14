@@ -1,3 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base override for all inputs */
+@layer base {
+  input, textarea, select {
+    @apply text-gray-900 bg-gray-100 placeholder-gray-500 border border-gray-300 shadow-sm p-2.5 !important;
+  }
+}
+
 /* Ensure all text boxes are dark text on light background */
 input, textarea, select {
   @apply bg-gray-100 text-gray-900 placeholder-gray-500 !important;
@@ -19,3 +30,11 @@ input, textarea, select {
 input::placeholder, textarea::placeholder {
   color:#6B7280 !important; /* gray-500 */
 } 
+
+
+@layer base {
+  input, textarea, select {
+    color:#111827 !important;                 /* black */
+    -webkit-text-fill-color:#111827 !important; /* also beats WebKit autofill/internal */
+  }
+}

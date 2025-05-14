@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from ..core.config import settings
 from ..core.database import get_db
 from .. import models, schemas
+from ..models import Role
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -70,6 +71,19 @@ def get_current_active_user(current_user: models.User = Depends(get_current_user
 
 
 def require_admin(current_user: models.User = Depends(get_current_active_user)):
-    if not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Not authorized")
+    if current_user.role != Role.admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+
+def require_manager(current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in (Role.admin, Role.manager):
+        raise HTTPException(status_code=403, detail="Manager access required")
+    return current_user
+
+
+def require_staff(current_user: models.User = Depends(get_current_active_user)):
+    # Any authenticated user is at least staff
+    if current_user.role not in (Role.admin, Role.manager, Role.staff):
+        raise HTTPException(status_code=403, detail="Staff access required")
     return current_user 

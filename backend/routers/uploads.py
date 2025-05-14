@@ -25,7 +25,7 @@ os.makedirs(TEAM_UPLOAD_DIR, exist_ok=True)
 async def upload_file(
     upload_type: str,
     file: UploadFile = File(...),
-    current_user: User = Depends(auth_utils.get_current_active_user) # Use actual dependency and type hint
+    current_user: User = Depends(auth_utils.require_manager)
 ):
     """Handle file uploads (e.g., for property images, team member photos)."""
     # Authorization check: Example - allow only admins or editors

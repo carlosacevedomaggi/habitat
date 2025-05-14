@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from .. import models, schemas
 from ..auth import utils as auth_utils
+from ..models import Role
 
 
 def get_user(db: Session, user_id: int) -> Optional[models.User]:
@@ -22,8 +23,7 @@ def create_user(db: Session, user_in: schemas.UserCreate) -> models.User:
         username=user_in.username,
         email=user_in.email,
         password_hash=hashed_password,
-        is_admin=user_in.is_admin,
-        is_editor=user_in.is_editor,
+        role=user_in.role if user_in.role is not None else Role.staff,
     )
     db.add(db_user)
     db.commit()

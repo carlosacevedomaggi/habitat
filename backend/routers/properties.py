@@ -4,7 +4,7 @@ from typing import List, Optional
 from ..core.database import get_db
 from .. import schemas, models
 from ..crud import properties as crud_property
-from ..auth import utils as auth_utils  # placeholder for current user; to be implemented
+from ..auth import utils as auth_utils  # provides role requirements
 
 # Import models, schemas, crud functions, and db session dependency
 # from .. import models, schemas, crud
@@ -14,7 +14,7 @@ from ..auth import utils as auth_utils  # placeholder for current user; to be im
 router = APIRouter()
 
 # Current user dependency (JWT)
-get_current_active_user = auth_utils.get_current_active_user
+# get_current_active_user = auth_utils.get_current_active_user
 
 @router.get("/", response_model=List[schemas.Property]) # Replace PropertySchema with actual schemas.Property
 def read_properties(
@@ -51,26 +51,23 @@ def read_property(property_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Property not found")
     return db_property
 
-@router.post("/", response_model=schemas.Property, status_code=status.HTTP_201_CREATED) # Replace PropertySchema
+@router.post("/", response_model=schemas.Property, status_code=status.HTTP_201_CREATED)
 def create_property(
     property_in: schemas.PropertyCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_active_user) # Protect route
+    current_user = Depends(auth_utils.require_manager)
 ):
-    """Create a new property (Protected)."""
-    # Add authorization check if needed (e.g., only admins/editors)
-    # if not current_user.is_admin and not current_user.is_editor:
-    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    """Create a new property (Manager+)."""
     return crud_property.create_property(db=db, property_in=property_in)
 
-@router.put("/{property_id}", response_model=schemas.Property) # Replace PropertySchema
+@router.put("/{property_id}", response_model=schemas.Property)
 def update_property(
     property_id: int, 
     property_update: schemas.PropertyUpdate, # Replace PropertySchema with schemas.PropertyUpdate
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_active_user) # Protect route
+    current_user = Depends(auth_utils.require_manager)
 ):
-    """Update an existing property (Protected)."""
+    """Update an existing property (Manager+)."""
     db_prop = crud_property.get_property(db, property_id)
     if not db_prop:
         raise HTTPException(status_code=404, detail="Property not found")
@@ -81,12 +78,9 @@ def update_property(
 def delete_property(
     property_id: int, 
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_active_user) # Protect route
+    current_user = Depends(auth_utils.require_manager)
 ):
-    """Delete a property (Protected)."""
-    # Authorization check (e.g., only admins)
-    # if not current_user.is_admin:
-    #     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    """Delete a property (Manager+)."""
     db_prop = crud_property.get_property(db, property_id)
     if not db_prop:
         raise HTTPException(status_code=404, detail="Property not found")
