@@ -25,12 +25,21 @@ def read_properties(
     listing_type: Optional[str] = None,
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
+    min_bedrooms: Optional[int] = None,
+    max_bedrooms: Optional[int] = None,
+    min_bathrooms: Optional[int] = None,
+    max_bathrooms: Optional[int] = None,
+    min_area: Optional[float] = None,
+    max_area: Optional[float] = None,
     db: Session = Depends(get_db)
 ):
     """Retrieve properties with pagination and filtering."""
     properties = crud_property.get_properties(
         db, skip=skip, limit=limit, search=search, property_type=property_type,
-        listing_type=listing_type, min_price=min_price, max_price=max_price
+        listing_type=listing_type, min_price=min_price, max_price=max_price,
+        min_bedrooms=min_bedrooms, max_bedrooms=max_bedrooms,
+        min_bathrooms=min_bathrooms, max_bathrooms=max_bathrooms,
+        min_area=min_area, max_area=max_area
     )
     return properties
 

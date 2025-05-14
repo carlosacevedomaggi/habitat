@@ -14,6 +14,12 @@ def get_properties(
     listing_type: Optional[str] = None,
     min_price: Optional[float] = None,
     max_price: Optional[float] = None,
+    min_bedrooms: Optional[int] = None,
+    max_bedrooms: Optional[int] = None,
+    min_bathrooms: Optional[int] = None,
+    max_bathrooms: Optional[int] = None,
+    min_area: Optional[float] = None,
+    max_area: Optional[float] = None,
 ) -> List[models.Property]:
     query = db.query(models.Property)
 
@@ -28,6 +34,18 @@ def get_properties(
         query = query.filter(models.Property.price >= min_price)
     if max_price is not None:
         query = query.filter(models.Property.price <= max_price)
+    if min_bedrooms is not None:
+        query = query.filter(models.Property.bedrooms >= min_bedrooms)
+    if max_bedrooms is not None:
+        query = query.filter(models.Property.bedrooms <= max_bedrooms)
+    if min_bathrooms is not None:
+        query = query.filter(models.Property.bathrooms >= min_bathrooms)
+    if max_bathrooms is not None:
+        query = query.filter(models.Property.bathrooms <= max_bathrooms)
+    if min_area is not None:
+        query = query.filter(models.Property.area >= min_area)
+    if max_area is not None:
+        query = query.filter(models.Property.area <= max_area)
 
     return query.offset(skip).limit(limit).all()
 

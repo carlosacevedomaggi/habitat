@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import Head from 'next/head';
-import Layout from '../components/Layout';
 import { useSettings } from '../context/SettingsContext';
 import MapDisplay from '../components/Map';
 // import { toast, ToastContainer } from 'react-toastify';
@@ -66,12 +65,11 @@ export default function ContactPage() {
   const officeLongitude = parseFloat(getSetting('office_longitude', null));
 
   if (settingsLoading) {
-    return <Layout><div className="text-center py-10 text-gray-300">Cargando...</div></Layout>;
+    return <div className="text-center py-10 text-gray-300">Cargando...</div>;
   }
 
   return (
-    <Layout>
-      {/* <ToastContainer /> */}
+    <>
       <Head>
         <title>{`Contacto - ${siteName}`}</title>
         <meta name="description" content={`Ponte en contacto con ${siteName}. Estamos aquí para ayudarte.`} />
@@ -155,7 +153,7 @@ export default function ContactPage() {
         </div>
       </section>
       <style jsx>{`
-        .input-style { @apply w-full bg-gray-900 border border-gray-600 text-white rounded-md shadow-sm p-3 focus:ring-accent focus:border-accent; }
+        /* .input-style is now defined globally and uses !important */
         .btn-submit-loading {
           display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent;
           font-weight: 500; border-radius: 0.375rem; 
@@ -173,6 +171,6 @@ export default function ContactPage() {
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-25px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
-    </Layout>
+    </>
   );
 } 

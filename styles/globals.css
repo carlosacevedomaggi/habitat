@@ -1,0 +1,21 @@
+/* Ensure all text boxes are dark text on light background */
+input, textarea, select {
+  @apply bg-gray-100 text-gray-900 placeholder-gray-500 !important;
+}
+
+.input-style {
+  @apply bg-gray-100 text-gray-900 placeholder-gray-500 border border-gray-300 shadow-sm p-2.5 !important;
+}
+
+input.text-white, textarea.text-white, select.text-white,
+input[class*="text-white"], textarea[class*="text-white"], select[class*="text-white"] {
+  color:#111827 !important; /* gray-900 */
+}
+
+/* Final override to force dark text regardless of Tailwind classes */
+input, textarea, select {
+  color:#111827 !important; /* gray-900 */
+}
+input::placeholder, textarea::placeholder {
+  color:#6B7280 !important; /* gray-500 */
+} 

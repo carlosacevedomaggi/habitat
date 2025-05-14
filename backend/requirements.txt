@@ -24,8 +24,8 @@ email-validator>=2.0.0  # required for pydantic EmailStr
 # CORS
 # fastapi.middleware.cors is built-in, no separate package needed
 
-# PDF Generation (if used)
-# reportlab
+# PDF Generation
+reportlab>=4.0.5
 
 # Other Utilities
 # python-dotenv # If not using pydantic-settings for .env loading

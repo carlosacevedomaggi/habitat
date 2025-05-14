@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import MapWithPins from '../../components/MapWithPins';
 import { fetchProperties } from '../../services/propertyService';
 import PropertySlider from '../../components/PropertySlider';
@@ -6,12 +6,35 @@ import PropertyFilter from '../../components/PropertyFilter';
 
 export default function PropertiesPage({ properties }) {
   const [activeCategory, setActiveCategory] = useState('Todos');
+  const [advFilters, setAdvFilters] = useState({
+    minBedrooms: '',
+    maxBedrooms: '',
+    minBathrooms: '',
+    maxBathrooms: '',
+    minArea: '',
+    maxArea: '',
+    minPrice: '',
+    maxPrice: '',
+  });
 
-  // Filter properties based on selected category
-  const filtered =
-    activeCategory === 'Todos'
-      ? properties
-      : properties.filter((p) => p.property_type === activeCategory);
+  const filtered = useMemo(() => {
+    return properties.filter((p) => {
+      if (activeCategory !== 'Todos' && p.property_type !== activeCategory) return false;
+
+      const numCheck = (val, min, max) => {
+        if (min !== '' && val !== null && val < parseFloat(min)) return false;
+        if (max !== '' && val !== null && val > parseFloat(max)) return false;
+        return true;
+      };
+
+      if (!numCheck(p.bedrooms, advFilters.minBedrooms, advFilters.maxBedrooms)) return false;
+      if (!numCheck(p.bathrooms, advFilters.minBathrooms, advFilters.maxBathrooms)) return false;
+      if (!numCheck(p.area, advFilters.minArea, advFilters.maxArea)) return false;
+      if (!numCheck(p.price, advFilters.minPrice, advFilters.maxPrice)) return false;
+
+      return true;
+    });
+  }, [properties, activeCategory, advFilters]);
 
   const propertiesByType = filtered.reduce((acc, prop) => {
     const key = prop.property_type || 'Otros';
@@ -27,6 +50,8 @@ export default function PropertiesPage({ properties }) {
         properties={properties}
         activeCategory={activeCategory}
         setActiveCategory={setActiveCategory}
+        advFilters={advFilters}
+        setAdvFilters={setAdvFilters}
       />
 
       {/* Map with pins (filtered) */}

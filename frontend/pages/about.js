@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
-import Layout from '../components/Layout';
 import { useSettings } from '../context/SettingsContext';
 
 const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
@@ -31,11 +30,11 @@ export default function AboutPage() {
   const siteName = getSetting('site_name', 'Habitat');
 
   if (settingsLoading || teamLoading) {
-    return <Layout><div className="text-center py-10 text-gray-300">Cargando...</div></Layout>;
+    return <div className="text-center py-10 text-gray-300">Cargando...</div>;
   }
 
   return (
-    <Layout>
+    <>
       <Head>
         <title>{`${pageTitle} - ${siteName}`}</title>
         <meta name="description" content={getSetting('about_description', 'Conoce más sobre nuestra empresa y equipo.')} />
@@ -143,6 +142,6 @@ export default function AboutPage() {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-    </Layout>
+    </>
   );
 } 

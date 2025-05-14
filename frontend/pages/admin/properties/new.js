@@ -4,11 +4,15 @@ import AdminLayout from '../../../components/AdminLayout';
 import Head from 'next/head';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
+import dynamic from 'next/dynamic';
 
 const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 const propertyTypes = ["Casa", "Apartamento", "Local Comercial", "Oficina", "Terreno", "Otro"];
 const listingTypes = ["Venta de propiedad", "Renta"];
+
+// Lazy-load Leaflet only on client to prevent SSR issues
+const leafletPromise = typeof window !== 'undefined' ? import('leaflet') : Promise.resolve(null);
 
 export default function NewPropertyPage() {
   const router = useRouter();
@@ -37,23 +41,30 @@ export default function NewPropertyPage() {
   const markerRef = useRef(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && !mapRef.current && window.L) {
-      const container = document.getElementById('leaflet-map');
-      if (!container) return; // safety guard during Fast Refresh/hydration
-      const L = window.L;
-      const initialLat = parseFloat(formData.latitude) || 10.4806;
-      const initialLng = parseFloat(formData.longitude) || -66.9036;
-      const map = L.map(container).setView([initialLat, initialLng], 13);
-      mapRef.current = map;
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(map);
-      markerRef.current = L.marker([initialLat, initialLng]).addTo(map);
-      map.on('click', function(e) {
-        const { lat, lng } = e.latlng;
-        setFormData(prev => ({ ...prev, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }));
-        markerRef.current.setLatLng(e.latlng);
-        mapRef.current.panTo(e.latlng);
+    if (!mapRef.current) {
+      leafletPromise.then((module) => {
+        const L = module?.default ?? window.L;
+        if (!L) return;
+        const container = document.getElementById('leaflet-map');
+        if (!container) return;
+        const initialLat = parseFloat(formData.latitude) || 10.4806;
+        const initialLng = parseFloat(formData.longitude) || -66.9036;
+        if (container._leaflet_id) {
+          // Remove old id so Leaflet can init again (hot reload)
+          container._leaflet_id = null;
+        }
+        const map = L.map(container).setView([initialLat, initialLng], 13);
+        mapRef.current = map;
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        markerRef.current = L.marker([initialLat, initialLng]).addTo(map);
+        map.on('click', function(e) {
+          const { lat, lng } = e.latlng;
+          setFormData(prev => ({ ...prev, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }));
+          markerRef.current.setLatLng(e.latlng);
+          mapRef.current.panTo(e.latlng);
+        });
       });
     }
     return () => {

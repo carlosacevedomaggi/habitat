@@ -2,7 +2,6 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Head from 'next/head';
-import Layout from '../../components/Layout';
 import ImageCarousel from '../../components/ImageCarousel';
 import MapDisplay from '../../components/Map';
 // import { toast, ToastContainer } from 'react-toastify'; // For contact form
@@ -80,9 +79,9 @@ export default function PropertyDetailPage() {
     }
   };
 
-  if (loading) return <Layout><div className="text-center py-10 text-gray-300">Cargando detalles de la propiedad...</div></Layout>;
-  if (error) return <Layout><div className="text-center py-10 text-red-500">Error: {error}</div></Layout>;
-  if (!property) return <Layout><div className="text-center py-10 text-gray-400">Propiedad no encontrada.</div></Layout>;
+  if (loading) return <div className="text-center py-10 text-gray-300">Cargando detalles de la propiedad...</div>;
+  if (error) return <div className="text-center py-10 text-red-500">Error: {error}</div>;
+  if (!property) return <div className="text-center py-10 text-gray-400">Propiedad no encontrada.</div>;
 
   // Prepare images for carousel: main image first, then additional images
   const carouselImages = [];
@@ -100,8 +99,7 @@ export default function PropertyDetailPage() {
   }
 
   return (
-    <Layout>
-      {/* <ToastContainer /> */}
+    <>
       <Head>
         <title>{`${property.title} - Habitat`}</title>
         <meta name="description" content={property.description.substring(0, 160)} />
@@ -202,6 +200,6 @@ export default function PropertyDetailPage() {
         .btn-submit-loading:disabled { opacity: 0.5; }
         .btn-submit-loading svg { animation: spin 1s linear infinite; margin-left: -0.25rem; margin-right: 0.75rem; height: 1.25rem; width: 1.25rem; }
       `}</style>
-    </Layout>
+    </>
   );
 } 

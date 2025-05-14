@@ -12,7 +12,8 @@ const nextConfig = {
     domains: [
       'images.unsplash.com', // Unsplash sample/property images
       'unsplash.com',        // Fallback Unsplash host (rare but safe)
-      'localhost'            // Local backend files served via http://localhost:8000/uploads
+      'localhost',           // Local backend files served via http://localhost:8000/uploads
+      'picsum.photos'        // Random placeholder images
     ],
   },
 };

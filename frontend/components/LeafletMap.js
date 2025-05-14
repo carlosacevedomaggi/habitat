@@ -1,4 +1,5 @@
 import { MapContainer, TileLayer, Marker, Tooltip } from 'react-leaflet';
+import { useRouter } from 'next/router';
 import L from 'leaflet';
 import Image from 'next/image';
 import 'leaflet/dist/leaflet.css';
@@ -12,7 +13,12 @@ L.Icon.Default.mergeOptions({
 });
 
 export default function LeafletMap({ properties, height = '500px' }) {
+  const router = useRouter();
   const center = properties?.length ? [properties[0].latitude || 10.489, properties[0].longitude || -66.879] : [10.489, -66.879];
+
+  const handleMarkerClick = (id) => {
+    router.push(`/properties/${id}`);
+  };
 
   return (
     <div className="w-full" style={{ height }}>
@@ -31,7 +37,12 @@ export default function LeafletMap({ properties, height = '500px' }) {
               })
             : undefined;
           return (
-            <Marker key={p.id} position={[p.latitude, p.longitude]} icon={customIcon}>
+            <Marker
+              key={p.id}
+              position={[p.latitude, p.longitude]}
+              icon={customIcon}
+              eventHandlers={{ click: () => handleMarkerClick(p.id) }}
+            >
               <Tooltip direction="top" offset={[0, -10]} opacity={1} className="!p-0 !bg-transparent">
                 <div className="bg-white rounded shadow-lg overflow-hidden w-40">
                   {p.image_url && (
