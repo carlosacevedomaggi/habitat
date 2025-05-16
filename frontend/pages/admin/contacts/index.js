@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import AdminLayout from '../../../components/AdminLayout';
-import Link from 'next/link';
 import Head from 'next/head';
 import { toast } from 'react-toastify';
+import { useSettings } from '../../../context/SettingsContext';
+import { useRouter } from 'next/router';
 
 const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
@@ -11,15 +12,69 @@ export default function ContactSubmissionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [pdfLoading, setPdfLoading] = useState({});
+  const { getSetting, loading: settingsLoading } = useSettings();
+  const router = useRouter();
+  const [currentUser, setCurrentUser] = useState(null); // Store current user object
+  const [assignableUsers, setAssignableUsers] = useState([]); // For dropdown
+  const [isAssigning, setIsAssigning] = useState({}); // For loading state per submission
 
   useEffect(() => {
     const token = localStorage.getItem('habitat_admin_token');
     if (!token) {
-      setError('Authentication required');
-      setLoading(false);
-      return;
+      toast.error('Authentication required');
+      router.push('/admin/login');
+      return; // Stop execution if no token
     }
-    fetch(`${API_ROOT}/api/contact/`, {
+
+    setLoading(true);
+    // Fetch current user first
+    fetch(`${API_ROOT}/api/users/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => {
+        if (!res.ok) return Promise.reject('Failed to fetch current user details');
+        return res.json();
+      })
+      .then(userData => {
+        setCurrentUser(userData);
+
+        // Decide whether to fetch all users based on role
+        let fetchUsersListPromise;
+        if (userData.role === 'admin' || userData.role === 'manager') {
+          fetchUsersListPromise = fetch(`${API_ROOT}/api/users/`, { headers: { Authorization: `Bearer ${token}` } })
+                                    .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch users for assignment'));
+        } else {
+          fetchUsersListPromise = Promise.resolve([]); // Staff don't need to assign, resolve with empty array
+        }
+
+        return fetchUsersListPromise.then(usersList => {
+          setAssignableUsers(usersList.filter(u => u.role === 'staff' || u.role === 'manager' || u.role === 'admin'));
+          
+          // Proceed with access checks and fetching submissions
+          if (!settingsLoading) {
+            if ((userData.role === 'staff' || userData.role === 'manager') && !getSetting('non_admin_can_view_all_contacts')) {
+              toast.error("Access Denied: You do not have permission to view contact submissions.");
+              router.push('/admin/dashboard');
+              setLoading(false);
+              return;
+            }
+            fetchSubmissions(token, userData); 
+          }
+        });
+      })
+      .catch(err => {
+        console.error("Error in initial data fetch:", err);
+        const errorMessage = typeof err === 'string' ? err : (err.message || "Could not load page data.");
+        setError(errorMessage);
+        toast.error(errorMessage);
+        setLoading(false);
+        if (errorMessage.includes('user')) router.push('/admin/login');
+      });
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settingsLoading, getSetting, router]); 
+
+  const fetchSubmissions = (token, user) => { 
+    setLoading(true);
+    fetch(`${API_ROOT}/api/contact/`, { // Backend already uses current_user from token for filtering
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -29,7 +84,38 @@ export default function ContactSubmissionsPage() {
       .then(setSubmissions)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  const handleAssignContact = async (submissionId, assignedToId) => {
+    setIsAssigning(prev => ({...prev, [submissionId]: true }));
+    const token = localStorage.getItem('habitat_admin_token');
+    if (!token) {
+      toast.error('Authentication required.');
+      setIsAssigning(prev => ({...prev, [submissionId]: false }));
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_ROOT}/api/contact/${submissionId}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ assigned_to_id: assignedToId === "" ? null : parseInt(assignedToId) })
+        }
+      );
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({detail: "Failed to assign contact"}));
+        throw new Error(errData.detail);
+      }
+      toast.success('Contact assignment updated.');
+      // Refresh submissions to show updated assignment
+      if(currentUser) fetchSubmissions(token, currentUser);
+    } catch (err) {
+      toast.error(err.message || "Could not update assignment.");
+    } finally {
+      setIsAssigning(prev => ({...prev, [submissionId]: false }));
+    }
+  };
 
   const handleDownloadPdf = async (submissionId) => {
     setPdfLoading(prev => ({ ...prev, [submissionId]: true }));
@@ -89,6 +175,7 @@ export default function ContactSubmissionsPage() {
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Subject</th>
+                <th className="px-4 py-3">Assigned To</th>
                 <th className="px-4 py-3">Submitted</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
@@ -100,6 +187,24 @@ export default function ContactSubmissionsPage() {
                   <td className="px-4 py-2">{s.name}</td>
                   <td className="px-4 py-2">{s.email}</td>
                   <td className="px-4 py-2 truncate max-w-xs">{s.subject}</td>
+                  <td className="px-4 py-2">
+                    {(currentUser?.role === 'admin' || currentUser?.role === 'manager') ? (
+                      <select 
+                        value={s.assigned_to_id || ""} 
+                        onChange={(e) => handleAssignContact(s.id, e.target.value)}
+                        disabled={isAssigning[s.id]}
+                        className="bg-gray-700 border border-gray-600 text-white text-xs rounded p-1 focus:ring-accent focus:border-accent disabled:opacity-50"
+                      >
+                        <option value="">Unassigned</option>
+                        {assignableUsers.map(user => (
+                          <option key={user.id} value={user.id}>{user.username}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      s.assigned_to?.username || 'N/A'
+                    )}
+                    {isAssigning[s.id] && <span className='text-xs ml-1'>...</span>}
+                  </td>
                   <td className="px-4 py-2">{new Date(s.submitted_at).toLocaleString()}</td>
                   <td className="px-4 py-2 text-right space-x-2">
                     <button

@@ -55,6 +55,7 @@ const defaultSettings = {
   text_color: "#FFFFFF", // Should use theme_text_color_on_dark
   background_color: "#1A1A1A", // Should use theme_background_primary
   // Add other expected settings with fallbacks
+  non_admin_can_view_all_contacts: true, // Match the default in seed_data.py
 };
 
 export const SettingsProvider = ({ children }) => {

@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
+import { useSettings } from '../context/SettingsContext'; // Import useSettings
 
 const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 export default function AdminLayout({ children, title = 'Admin Panel' }) {
   const router = useRouter();
+  const { getSetting, loading: settingsLoading } = useSettings(); // Get settings context
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [adminUser, setAdminUser] = useState(null); // Store full user details including role
@@ -68,7 +70,7 @@ export default function AdminLayout({ children, title = 'Admin Panel' }) {
     router.push('/admin/login');
   };
 
-  if (isLoading) {
+  if (isLoading || settingsLoading) { // Also wait for settings to load
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
         Loading admin panel...
@@ -101,10 +103,11 @@ export default function AdminLayout({ children, title = 'Admin Panel' }) {
             <nav className="space-x-4 flex items-center">
               <Link href="/admin/dashboard" className="hover:text-accent">Dashboard</Link>
               {(adminUser?.role === 'admin' || adminUser?.role === 'manager' || adminUser?.role === 'staff') && (
-                <>
-                  <Link href="/admin/properties" className="hover:text-accent">Propiedades</Link>
-                  <Link href="/admin/contacts" className="hover:text-accent">Contactos</Link>
-                </>
+                <Link href="/admin/properties" className="hover:text-accent">Propiedades</Link>
+              )}
+              {(adminUser?.role === 'admin' || 
+               ((adminUser?.role === 'manager' || adminUser?.role === 'staff') && getSetting('non_admin_can_view_all_contacts'))) && (
+                <Link href="/admin/contacts" className="hover:text-accent">Contactos</Link>
               )}
               {adminUser?.role === 'admin' && (
                 <>

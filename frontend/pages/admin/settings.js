@@ -1,243 +1,245 @@
 import { useEffect, useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import Head from 'next/head';
-import Link from 'next/link';
-// import { toast } from 'react-toastify';
+import { useRouter } from 'next/router';
+import { toast } from 'react-toastify';
+import { useSettings } from '../../context/SettingsContext'; // Import useSettings
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
 
-// Define categories for grouping settings - this could also be fetched if dynamic
-const settingCategories = {
-  general: "General Site Info",
-  contact: "Contact Information",
-  social: "Social Media Links",
-  theme: "Theme & Appearance",
-  aboutpage: "About Page Content",
-  footer: "Footer Content",
-  // Add more categories as they are defined in your backend SiteSettings model/data
-};
+// Define categories for grouping settings
+const settingCategories = ["General", "Contact", "Social", "AboutPage", "Footer", "Appearance", "Permissions"];
 
 export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState({}); // Store as object: { key: {value, category, ...} }
-  const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
+  const { settings: contextSettings, loading: contextLoading, getSetting } = useSettings(); // Get settings from context
+  const [settingsData, setSettingsData] = useState({}); // Local state for modifications
+  const [initialSettingsData, setInitialSettingsData] = useState({}); // To compare for changes
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
-
-  const fetchSettings = async () => {
-    setLoading(true); setError('');
-    const token = localStorage.getItem('habitat_admin_token');
-    if (!token) { router.push('/admin/login'); return; }
-
-    try {
-      const res = await fetch(`${API_ROOT}/api/settings`, {
-        headers: { 'Authorization': `Bearer ${token}` }, // Settings GET might be protected
-      });
-      if (!res.ok) throw new Error('Failed to fetch settings');
-      const data = await res.json();
-      setSettings(data); // API returns { key: { key, value, category } }
-    } catch (err) {
-      setError(err.message || 'Could not load settings.');
-      // toast.error(err.message || 'Could not load settings.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [activeCategory, setActiveCategory] = useState('General');
 
   useEffect(() => {
-    fetchSettings();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleChange = (key, inputValue) => {
-    setSettings(prev => {
-        const currentSetting = prev[key];
-        let newValue = inputValue;
-        // If the original value was an object like {text: "..."}, update the text property
-        if (typeof currentSetting.value === 'object' && currentSetting.value !== null && 'text' in currentSetting.value) {
-            newValue = { ...currentSetting.value, text: inputValue };
-        } else if (typeof currentSetting.value === 'boolean') {
-            // Ensure boolean values are handled correctly from checkboxes
-            newValue = inputValue;
-        } else if (typeof currentSetting.value === 'number') {
-            newValue = parseFloat(inputValue) || 0;
-        }
-        // Add other type handlings if necessary, e.g. for JSON objects that aren't {text: "..."}
-        // For now, this covers text-based-objects and primitives.
-
-        return {
-            ...prev,
-            [key]: { ...currentSetting, value: newValue },
+    if (!contextLoading && contextSettings) {
+      // Initialize local state with all settings from context, ensuring correct structure
+      const initialData = {};
+      for (const key in contextSettings) {
+        // Use getSetting to ensure correct value format (handles {text: ...} vs direct value)
+        const valueFromContext = getSetting(key); 
+        initialData[key] = {
+          value: valueFromContext,
+          // Attempt to find category from SITE_SETTINGS in seed_data or default to 'General'
+          // This is a simplification; ideally, category comes from API or is predefined mapping
+          category: contextSettings[key]?.category || deduceCategory(key) 
         };
+      }
+      setSettingsData(initialData);
+      setInitialSettingsData(JSON.parse(JSON.stringify(initialData))); // Deep copy for comparison
+    }
+  }, [contextLoading, contextSettings, getSetting]);
+
+  // Helper to deduce category if not provided (basic example)
+  const deduceCategory = (key) => {
+    if (key.includes('contact_') || key.includes('office_')) return 'Contact';
+    if (key.includes('facebook_') || key.includes('instagram_') || key.includes('tiktok_') || key.includes('linkedin_') || key.includes('whatsapp_')) return 'Social';
+    if (key.includes('about_page_')) return 'AboutPage';
+    if (key.includes('footer_')) return 'Footer';
+    if (key.startsWith('theme_') || key === 'home_background_url') return 'Appearance';
+    if (key === 'non_admin_can_view_all_contacts') return 'Permissions';
+    return 'General';
+  };
+
+
+  const handleChange = (key, inputValue, category) => {
+    setSettingsData(prev => {
+      const newSetting = { ...prev[key] }; // Copy existing setting properties
+      newSetting.value = inputValue; // Update value
+      if (category) { // Update category if provided
+        newSetting.category = category;
+      } else if (!newSetting.category) { // Assign default if no category exists
+        newSetting.category = 'General';
+      }
+      return { ...prev, [key]: newSetting };
     });
   };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true); setError('');
+    setIsSaving(true);
+    setError('');
     const token = localStorage.getItem('habitat_admin_token');
-    if (!token) { router.push('/admin/login'); setIsSubmitting(false); return; }
+    if (!token) {
+      toast.error("Authentication required.");
+      router.push('/admin/login');
+      setIsSaving(false);
+      return;
+    }
 
-    // Prepare data in the format expected by the backend { key: { value: ..., category: ...} }
-    const settingsToUpdate = {};
-    for (const key in settings) {
-        settingsToUpdate[key] = { 
-            value: settings[key].value, 
-            category: settings[key].category 
+    // Construct payload with all settings, structured as the backend expects
+    // The backend PUT /api/settings expects a flat dictionary of {key: {value: ..., category: ...}}
+    const payload = {};
+    for (const key in settingsData) {
+        // Ensure the value sent to backend is the direct value, not {text: ...} if it was just for display
+        let valueToSave = settingsData[key].value;
+        if (typeof valueToSave === 'object' && valueToSave !== null && 'text' in valueToSave && !key.endsWith('_color') && !key.endsWith('_url')) {
+            // This case should ideally not happen if getSetting and handleChange are robust
+            // but as a safeguard, extract .text if it's an object and not a color/url
+            // However, booleans and direct strings (like colors/URLs) should be saved directly.
+            // The main issue is frontend displaying {text: "..."} for some fields.
+            // Backend expects direct value for SiteSettings.value (JSON)
+        }
+        payload[key] = {
+             value: settingsData[key].value, // Send the raw value (string, boolean, number, or object if JSON)
+             category: settingsData[key].category || 'General' 
         };
     }
 
     try {
-      const res = await fetch(`${API_ROOT}/api/settings/`, {
+      const res = await fetch(`${API_BASE}/settings`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(settingsToUpdate),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
       });
-      const data = await res.json(); // Even on success, API returns updated settings
-      if (res.ok) {
-        // toast.success('Settings updated successfully!');
-        alert('Settings updated successfully!');
-        setSettings(data); // Update state with potentially processed data from backend
-      } else {
-        throw new Error(data.detail || 'Failed to update settings.');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({ detail: "Failed to save settings." }));
+        throw new Error(errData.detail);
       }
+      toast.success('Settings updated successfully!');
+      setInitialSettingsData(JSON.parse(JSON.stringify(settingsData))); // Update baseline
+      // Optionally, trigger a re-fetch in SettingsContext if needed, or rely on its own refresh mechanism
+      if (window.location) window.location.reload(); // Force reload to see changes reflected by context
     } catch (err) {
-      setError(err.message || 'An unexpected error occurred.');
-      // toast.error(err.message || 'An unexpected error occurred.');
+      console.error(err);
+      setError(err.message);
+      toast.error(err.message || "Failed to save settings.");
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
   };
-  
-  // Group settings by category for rendering
-  const groupedSettings = {};
-  for (const key in settings) {
-    const category = settings[key].category || 'general';
-    // Exclude 'ThemeColors' category from being processed for the general settings page
-    if (category.toLowerCase() === 'themecolors') {
-      continue;
-    }
-    if (!groupedSettings[category]) {
-      groupedSettings[category] = [];
-    }
-    groupedSettings[category].push({ ...settings[key], key }); // Add key to the object for easy access
+
+  if (contextLoading) {
+    return <AdminLayout title="Site Settings"><div className="text-center py-10">Loading settings...</div></AdminLayout>;
   }
 
   return (
     <AdminLayout title="Site Settings">
-      <Head><title>Site Settings - Habitat Admin</title></Head>
-      <div className="bg-gray-800 p-6 md:p-8 rounded-lg shadow-lg max-w-3xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+      <Head>
+        <title>Site Settings - Habitat Admin</title>
+      </Head>
+      <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
+        <div className="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
           <h1 className="text-3xl font-semibold text-accent">Site Settings</h1>
+          {/* Category Navigation */}
+          <div className="flex space-x-1 overflow-x-auto pb-2">
+            {settingCategories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none whitespace-nowrap ${activeCategory === category ? 'bg-accent text-gray-900' : 'bg-gray-700 hover:bg-gray-600'}`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {error && <div className="bg-red-500 text-white p-3 rounded-md mb-6 text-center">Error: {error}</div>}
-        {loading && <p className="text-gray-400 text-center">Loading settings...</p>}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {error && <div className="bg-red-500 text-white p-3 rounded-md text-center">{error}</div>}
 
-        {!loading && Object.keys(settings).length === 0 && !error && (
-          <p className="text-gray-400 text-center">No settings found or unable to load.</p>
-        )}
-
-        {!loading && Object.keys(settings).length > 0 && (
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {Object.entries(groupedSettings).map(([categoryKey, categorySettings]) => (
-              <section key={categoryKey} className="p-6 bg-gray-700 rounded-lg">
-                <h2 className="text-xl font-semibold text-accent mb-4 capitalize border-b border-gray-600 pb-2">
-                  {settingCategories[categoryKey.toLowerCase()] || categoryKey.replace(/_/g, ' ')}
-                </h2>
-                <div className="space-y-4">
-                  {categorySettings.sort((a,b) => a.key.localeCompare(b.key)).map(setting => {
-                    // Determine input type based on key or expected value type
-                    let inputType = 'text';
-                    if (typeof setting.value === 'boolean') inputType = 'checkbox';
-                    else if (typeof setting.value === 'number') inputType = 'number';
-                    else if (setting.key.includes('color')) inputType = 'color';
-                    else if (setting.key.includes('url') || setting.key.includes('link')) inputType = 'url';
-                    else if (setting.key.includes('email')) inputType = 'email';
-                    else if (setting.key.includes('phone')) inputType = 'tel';
-                    else if (setting.key.includes('description') || setting.key.includes('text') || setting.key.includes('message')) inputType = 'textarea';
-                    
-                    // Determine the value to display in the input field
-                    let displayValue = setting.value;
-                    if (typeof setting.value === 'object' && setting.value !== null) {
-                      if ('text' in setting.value) {
-                        displayValue = setting.value.text;
-                      } else {
-                        // For other objects, you might want to stringify or handle differently
-                        // For now, this is a basic fallback. Ideally, complex objects would have custom UI.
-                        displayValue = JSON.stringify(setting.value);
-                      }
-                    } else if (setting.value === null || setting.value === undefined) {
-                        displayValue = ''; // Ensure null/undefined are empty strings for inputs
-                    }
-
-                    return (
-                      <div key={setting.key}>
-                        <label htmlFor={setting.key} className="block text-sm font-medium text-gray-300 mb-1 capitalize">
-                          {setting.key.replace(/_/g, ' ')}
-                        </label>
-                        {inputType === 'textarea' ? (
-                          <textarea 
-                            name={setting.key} 
-                            id={setting.key} 
-                            value={displayValue} 
-                            onChange={(e) => handleChange(setting.key, e.target.value)} 
-                            rows="3"
-                            className="w-full input-style"
-                          />
-                        ) : inputType === 'checkbox' ? (
-                          <input 
-                            type="checkbox" 
-                            name={setting.key} 
-                            id={setting.key} 
-                            checked={!!setting.value} 
-                            onChange={(e) => handleChange(setting.key, e.target.checked)} 
-                            className="h-5 w-5 text-accent bg-gray-700 border-gray-600 rounded focus:ring-accent"
-                          />
-                        ) : (
-                          <input 
-                            type={inputType} 
-                            name={setting.key} 
-                            id={setting.key} 
-                            value={displayValue} 
-                            onChange={(e) => handleChange(setting.key, e.target.value)} 
-                            className={`w-full input-style ${inputType === 'color' ? 'h-10 p-1' : ''}`}
-                          />
-                        )}
-                        {/* Optional: Add description from backend if available */}
-                        {/* {setting.description && <p className="text-xs text-gray-500 mt-1">{setting.description}</p>} */}
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
-            <div className="flex justify-end pt-4">
-              <button type="submit" disabled={isSubmitting || loading} className="btn-submit-loading">
-                {isSubmitting && <svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
-                {isSubmitting ? 'Saving...' : 'Save Settings'}
+          {/* Render settings based on activeCategory */}
+          {settingsData && Object.entries(settingsData)
+            .filter(([key, setting]) => setting.category === activeCategory)
+            .map(([key, setting]) => {
+              const label = key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+              
+              // Special handling for boolean for the checkbox
+              if (key === 'non_admin_can_view_all_contacts' && activeCategory === 'Permissions') {
+                return (
+                  <div key={key} className="bg-gray-700 p-4 rounded-lg">
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={setting.value === true} // Ensure boolean comparison
+                        onChange={(e) => handleChange(key, e.target.checked, 'Permissions')}
+                        className="form-checkbox h-5 w-5 text-accent bg-gray-600 border-gray-500 rounded focus:ring-accent"
+                      />
+                      <span className="ml-3 text-gray-300">{label}</span>
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1">Key: {key} | Category: {setting.category}</p>
+                  </div>
+                );
+              }
+              
+              // Handle other types (text, number, could expand to textarea etc.)
+              // For simple text inputs:
+              if (typeof setting.value === 'string' || typeof setting.value === 'number') {
+                return (
+                  <div key={key} className="bg-gray-700 p-4 rounded-lg">
+                    <label htmlFor={key} className="block text-sm font-medium text-gray-300 mb-1">{label}</label>
+                    <input
+                      type={typeof setting.value === 'number' ? 'number' : 'text'}
+                      id={key}
+                      name={key}
+                      value={setting.value || ''}
+                      onChange={(e) => handleChange(key, e.target.value, setting.category)}
+                      className="input-style"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Key: {key} | Category: {setting.category}</p>
+                  </div>
+                );
+              }
+              
+              // Fallback for complex objects or unhandled - could be JSON editor or specific inputs
+              // For this example, we'll render a stringified version if it's an object not handled above
+              if (typeof setting.value === 'object' && setting.value !== null) {
+                 return (
+                  <div key={key} className="bg-gray-700 p-4 rounded-lg">
+                    <label htmlFor={key} className="block text-sm font-medium text-gray-300 mb-1">{label} (JSON)</label>
+                    <textarea
+                      id={key}
+                      name={key}
+                      value={JSON.stringify(setting.value, null, 2)}
+                      onChange={(e) => {
+                        try {
+                          handleChange(key, JSON.parse(e.target.value), setting.category);
+                        } catch (parseError) {
+                          // Maybe set a temp error state for this field
+                          console.warn("Invalid JSON for", key);
+                        }
+                      }}
+                      rows="3"
+                      className="input-style font-mono text-xs"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Key: {key} | Category: {setting.category}</p>
+                  </div>
+                );
+              }
+              return null; // Should not happen if data is well-formed
+          })}
+          
+          {/* Save button only if there are changes and not in ThemeColors category (handled by Appearance page) */}
+          {activeCategory !== 'ThemeColors' && JSON.stringify(settingsData) !== JSON.stringify(initialSettingsData) && (
+            <div className="flex justify-end pt-6">
+              <button type="submit" disabled={isSaving} className="btn-primary flex items-center">
+                {isSaving && <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle><path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75" fill="currentColor"></path></svg>}
+                {isSaving ? 'Saving...' : 'Save Settings'}
               </button>
             </div>
-          </form>
-        )}
+          )}
+        </form>
       </div>
       <style jsx>{`
         .input-style { 
-          @apply w-full border rounded-md shadow-sm p-2.5 focus:ring-accent focus:border-accent;
-          background-color: var(--color-header-background);
-          color: var(--color-text-primary-lightbg);
-          border-color: var(--color-border);
+          @apply w-full bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm p-2.5 focus:ring-accent focus:border-accent; 
         }
-        .btn-submit-loading {
-          display: inline-flex; align-items: center; border: 1px solid transparent;
-          font-size: 0.875rem; font-weight: 500; border-radius: 0.375rem; 
-          padding-left: 1.5rem; padding-right: 1.5rem; padding-top: 0.625rem; padding-bottom: 0.625rem; 
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); 
-          color: #1f2937; background-color: var(--color-accent);
+        .btn-primary {
+          @apply px-6 py-2.5 bg-accent text-gray-900 font-medium text-sm rounded-md shadow-sm hover:bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-accent disabled:opacity-50;
         }
-        .btn-submit-loading:hover { background-color: rgba(var(--color-accent-rgb, 200 167 115), 0.8); }
-        .btn-submit-loading:focus { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px var(--color-gray-800, #1f2937), 0 0 0 4px var(--color-accent); }
-        .btn-submit-loading:disabled { opacity: 0.5; }
-        .btn-submit-loading svg { animation: spin 1s linear infinite; margin-left: -0.25rem; margin-right: 0.75rem; height: 1.25rem; width: 1.25rem; }
+        /* Style for category tabs */
+        .flex.space-x-1 button { /* More specific selector */
+          /* ... */
+        }
       `}</style>
     </AdminLayout>
   );

@@ -9,7 +9,7 @@ export default function HeroSection({ /* backgroundUrl prop is no longer needed 
       {/* Background Image has been removed; this section will now show the global body background */}
       
       {/* Overlay - still useful for text contrast against the global background */}
-      <div className="absolute inset-0 bg-black/20 z-10" />
+      <div className="absolute inset-0 bg-transparent z-10" />
 
       {/* Content */}
       <div className="relative z-20 max-w-3xl px-6 text-white">

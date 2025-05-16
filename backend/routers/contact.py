@@ -6,7 +6,7 @@ from email.message import EmailMessage
 
 from .. import schemas, models
 from ..core.database import get_db
-from ..crud import contacts as crud_contact
+from ..crud import contact as crud_contact
 from ..auth import utils as auth_utils
 from ..utils.pdf import generate_contact_pdf
 
@@ -18,7 +18,7 @@ def create_submission(submission: schemas.ContactCreate, db: Session = Depends(g
 
 @router.get("/", response_model=List[schemas.Contact])
 def list_submissions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(auth_utils.require_staff)):
-    return crud_contact.get_contacts(db, skip, limit)
+    return crud_contact.get_contacts(db, current_user, skip, limit)
 
 @router.get("/{submission_id}", response_model=schemas.Contact)
 def get_submission(submission_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth_utils.require_staff)):

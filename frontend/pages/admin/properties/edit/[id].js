@@ -5,11 +5,14 @@ import AdminLayout from '../../../../components/AdminLayout';
 import Head from 'next/head';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
+import dynamic from 'next/dynamic';
 
 const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 const propertyTypes = ["Casa", "Apartamento", "Local Comercial", "Oficina", "Terreno", "Otro"];
 const listingTypes = ["Venta de propiedad", "Renta"];
+
+const leafletPromise = typeof window !== 'undefined' ? import('leaflet') : Promise.resolve(null);
 
 export default function EditPropertyPage() {
   const router = useRouter();
@@ -30,6 +33,7 @@ export default function EditPropertyPage() {
     is_featured: false,
     image_url: '', // Current main image URL from DB
     images: [], // Current additional images from DB {id, image_url, order}
+    assigned_to_id: null, // New field
   });
   const [mainImageFile, setMainImageFile] = useState(null);
   const [mainImagePreview, setMainImagePreview] = useState(''); // For new main image selection
@@ -41,50 +45,58 @@ export default function EditPropertyPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [assignableUsers, setAssignableUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const mapRef = useRef(null);
   const markerRef = useRef(null);
 
   useEffect(() => {
-    if (!propertyId) return;
-    setLoading(true);
     const token = localStorage.getItem('habitat_admin_token');
+    if (!token || !propertyId) {
+      if(!token) router.push('/admin/login');
+      setLoading(false);
+      return;
+    }
 
-    fetch(`${API_ROOT}/api/properties/${propertyId}`, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} })
-      .then(res => {
-        if (!res.ok) {
-            toast.error('Failed to fetch property details');
-            throw new Error('Failed to fetch property details');
-        }
-        return res.json();
-      })
-      .then(data => {
-        setFormData({
-          title: data.title || '',
-          description: data.description || '',
-          price: data.price || '',
-          location: data.location || '',
-          property_type: data.property_type || propertyTypes[0],
-          listing_type: data.listing_type || listingTypes[0],
-          bedrooms: data.bedrooms ?? '',
-          bathrooms: data.bathrooms ?? '',
-          area: data.area ?? '',
-          latitude: data.latitude?.toString() || '10.4806',
-          longitude: data.longitude?.toString() || '-66.9036',
-          is_featured: data.is_featured || false,
-          image_url: data.image_url || '',
-          images: data.images || [], // Assuming API returns property.images as a list
-        });
-        setMainImagePreview(data.image_url || ''); // Initial preview is current main image
-      })
-      .catch(err => {
-        setError(err.message || 'Could not load property data.');
-        toast.error(err.message || 'Could not load property data.');
-      })
-      .finally(() => setLoading(false));
-  }, [propertyId, router]);
+    // Fetch current user, assignable users, and property details
+    Promise.all([
+      fetch(`${API_ROOT}/api/users/me`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch current user')),
+      fetch(`${API_ROOT}/api/users/`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch assignable users')),
+      fetch(`${API_ROOT}/api/properties/${propertyId}`).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch property details'))
+    ])
+    .then(([userData, usersList, propertyData]) => {
+      setCurrentUser(userData);
+      setAssignableUsers(usersList.filter(u => u.role === 'staff' || u.role === 'manager' || u.role === 'admin'));
+      
+      setFormData({
+        title: propertyData.title || '',
+        description: propertyData.description || '',
+        price: propertyData.price || '',
+        location: propertyData.location || '',
+        property_type: propertyData.property_type || propertyTypes[0],
+        listing_type: propertyData.listing_type || listingTypes[0],
+        bedrooms: propertyData.bedrooms || '',
+        bathrooms: propertyData.bathrooms || '',
+        area: propertyData.area || '',
+        latitude: propertyData.latitude?.toString() || '10.4806',
+        longitude: propertyData.longitude?.toString() || '-66.9036',
+        is_featured: propertyData.is_featured || false,
+        image_url: propertyData.image_url || '',
+        images: propertyData.images || [],
+        assigned_to_id: propertyData.assigned_to_id || null,
+      });
+      setMainImagePreview(propertyData.image_url || '');
+      setImagesToDelete(propertyData.delete_image_ids || []);
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error("Error fetching initial data:", err);
+      toast.error(err.message || "Could not load data for editing.");
+      setError(err.message || "Could not load data.");
+      setLoading(false);
+    });
 
-  useEffect(() => {
     if (typeof window !== 'undefined' && !loading && formData.latitude && formData.longitude && window.L) {
       const L = window.L;
       const lat = parseFloat(formData.latitude);
@@ -114,7 +126,10 @@ export default function EditPropertyPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    setFormData((prev) => ({ 
+        ...prev, 
+        [name]: type === 'checkbox' ? checked : (name === 'assigned_to_id' && value === "" ? null : value) 
+    }));
   };
 
   const handleMainImageChange = (e) => {
@@ -182,8 +197,9 @@ export default function EditPropertyPage() {
       latitude: formData.latitude !== '' ? parseFloat(formData.latitude) : null,
       longitude: formData.longitude !== '' ? parseFloat(formData.longitude) : null,
       image_url: newMainImageUrl, // Updated main image URL
-      additional_image_urls: newAdditionalImageUrls.length > 0 ? newAdditionalImageUrls : undefined, // Send only if new images exist
-      delete_image_ids: imagesToDelete.length > 0 ? imagesToDelete : undefined, // Send only if images are marked for deletion
+      additional_image_urls: newAdditionalImageUrls.length > 0 ? newAdditionalImageUrls : null,
+      delete_image_ids: imagesToDelete.length > 0 ? imagesToDelete : null,
+      assigned_to_id: formData.assigned_to_id ? parseInt(formData.assigned_to_id) : null,
     };
     delete propertyDataToUpdate.images; // Don't send the full images array back
 
@@ -299,6 +315,25 @@ export default function EditPropertyPage() {
             <input id="is_featured" name="is_featured" type="checkbox" checked={formData.is_featured} onChange={handleChange} className="h-4 w-4 text-accent bg-gray-700 border-gray-600 rounded focus:ring-accent" />
             <label htmlFor="is_featured" className="ml-2 block text-sm text-gray-300">Mark as Featured</label>
           </div>
+
+          {/* Assignment Dropdown - visible to admin/manager */} 
+          {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
+            <div>
+              <label htmlFor="assigned_to_id" className="block text-sm font-medium text-gray-300 mb-1">Assign To</label>
+              <select 
+                name="assigned_to_id" 
+                id="assigned_to_id" 
+                value={formData.assigned_to_id || ""} 
+                onChange={handleChange} 
+                className="w-full bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm p-2.5 focus:ring-accent focus:border-accent h-[46px]"
+              >
+                <option value="">Unassigned</option>
+                {assignableUsers.map(user => (
+                  <option key={user.id} value={user.id}>{user.username} ({user.role})</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="flex justify-end space-x-4 pt-4">
             <Link href="/admin/properties" className="btn-cancel">

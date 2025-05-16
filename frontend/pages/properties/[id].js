@@ -30,18 +30,48 @@ export default function PropertyDetailPage() {
   useEffect(() => {
     if (id) {
       setLoading(true);
+      // Fetch property details
       fetch(`${API_ROOT}/api/properties/${id}`)
         .then(res => {
-          if (!res.ok) throw new Error('Property not found or error loading details.');
+          if (!res.ok) {
+            if (res.status === 404) throw new Error('Propiedad no encontrada.');
+            throw new Error('Error al cargar los detalles de la propiedad.');
+          }
           return res.json();
         })
         .then(data => {
           setProperty(data);
           setContactForm(prev => ({ ...prev, property_id: data.id, message: `Hola, me interesa la propiedad "${data.title}" (ID: ${data.id}).` }));
+          
+          // After successfully loading property, track the click
+          fetch(`${API_ROOT}/api/properties/${data.id}/track-click`, { 
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json' // Though body is empty, good practice
+            }
+            // No body is needed, backend will get IP/User-Agent from request
+          })
+          .then(clickRes => {
+            if (!clickRes.ok) {
+              // Non-critical error, just log it, don't bother user
+              clickRes.json().then(errData => {
+                console.warn('Failed to track property click:', errData.detail || clickRes.statusText);
+              }).catch(() => {
+                console.warn('Failed to track property click and parse error response:', clickRes.statusText);
+              });
+            }
+            // else { console.log('Property click tracked'); }
+          })
+          .catch(clickErr => {
+            // Also non-critical
+            console.warn('Error sending property click tracking request:', clickErr);
+          });
+
         })
         .catch(err => {
-          console.error(err);
+          console.error("Property fetch error:", err);
           setError(err.message);
+          // toast.error(err.message); // Already handled by error display
         })
         .finally(() => setLoading(false));
     }
@@ -136,13 +166,13 @@ export default function PropertyDetailPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-gray-300 mb-6">
                 {property.bedrooms && <div className="flex items-center"><i className="fas fa-bed mr-2 text-accent"></i> {property.bedrooms} Habitaciones</div>}
                 {property.bathrooms && <div className="flex items-center"><i className="fas fa-bath mr-2 text-accent"></i> {property.bathrooms} Baños</div>}
-                {property.area && <div className="flex items-center"><i className="fas fa-ruler-combined mr-2 text-accent"></i> {property.area} m²</div>}
+                {property.square_feet && <div className="flex items-center"><i className="fas fa-ruler-combined mr-2 text-accent"></i> {property.square_feet} m²</div>}
               </div>
               <h3 className="text-xl font-semibold text-accent mb-2">Descripción</h3>
               <p className="text-gray-300 whitespace-pre-line leading-relaxed">{property.description}</p>
             </section>
 
-            {property.latitude && property.longitude && (
+            {property.latitude != null && property.longitude != null && (
               <section className="bg-gray-800 p-6 rounded-xl shadow-lg">
                 <h2 className="text-2xl font-semibold text-accent mb-4">Ubicación</h2>
                 <MapDisplay 

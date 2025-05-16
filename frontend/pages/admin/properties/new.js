@@ -29,6 +29,7 @@ export default function NewPropertyPage() {
     latitude: '10.4806',
     longitude: '-66.9036',
     is_featured: false,
+    assigned_to_id: null,
   });
   const [mainImageFile, setMainImageFile] = useState(null);
   const [additionalImageFiles, setAdditionalImageFiles] = useState([]);
@@ -36,11 +37,33 @@ export default function NewPropertyPage() {
   const [additionalImagePreviews, setAdditionalImagePreviews] = useState([]);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [assignableUsers, setAssignableUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const mapRef = useRef(null);
   const markerRef = useRef(null);
 
   useEffect(() => {
+    const token = localStorage.getItem('habitat_admin_token');
+    if (!token) {
+      router.push('/admin/login');
+      return;
+    }
+    // Fetch current user and assignable users
+    Promise.all([
+      fetch(`${API_ROOT}/api/users/me`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch current user')),
+      fetch(`${API_ROOT}/api/users/`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch assignable users'))
+    ])
+    .then(([userData, usersList]) => {
+      setCurrentUser(userData);
+      setAssignableUsers(usersList.filter(u => u.role === 'staff' || u.role === 'manager' || u.role === 'admin'));
+    })
+    .catch(err => {
+      console.error("Error fetching user data:", err);
+      toast.error(err.message || "Could not load user data for assignment.");
+      // Decide if this is critical enough to block form usage or just hide assignment
+    });
+
     if (!mapRef.current) {
       leafletPromise.then((module) => {
         const L = module?.default ?? window.L;
@@ -91,7 +114,10 @@ export default function NewPropertyPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    setFormData((prev) => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : (name === 'assigned_to_id' && value === "" ? null : value) 
+    }));
   };
 
   const handleMainImageChange = (e) => {
@@ -171,6 +197,7 @@ export default function NewPropertyPage() {
       longitude: formData.longitude ? parseFloat(formData.longitude) : null,
       image_url: mainImageUrl || null,
       additional_image_urls: uploadedAdditionalImageUrls.length > 0 ? uploadedAdditionalImageUrls : null,
+      assigned_to_id: formData.assigned_to_id ? parseInt(formData.assigned_to_id) : null,
     };
 
     try {
@@ -258,6 +285,25 @@ export default function NewPropertyPage() {
             </div>
           </div>
           
+          {/* Assignment Dropdown - visible to admin/manager */} 
+          {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
+            <div>
+              <label htmlFor="assigned_to_id" className="block text-sm font-medium text-gray-300 mb-1">Assign To</label>
+              <select 
+                name="assigned_to_id" 
+                id="assigned_to_id" 
+                value={formData.assigned_to_id || ""} 
+                onChange={handleChange} 
+                className="w-full bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm p-2.5 focus:ring-accent focus:border-accent h-[46px]"
+              >
+                <option value="">Unassigned</option>
+                {assignableUsers.map(user => (
+                  <option key={user.id} value={user.id}>{user.username} ({user.role})</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="col-span-1 md:col-span-2">
             <label className="block text-sm font-medium text-gray-300 mb-2">Set Location on Map</label>
             <div id="leaflet-map" style={{ height: '300px' }} className="rounded-md border border-gray-600 mb-2"></div>

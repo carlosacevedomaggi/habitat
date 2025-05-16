@@ -1,0 +1,120 @@
+Plan: Admin Control over Non-Admin Access & Contact Assignment
+
+**I. Admin Control: Visibility of Contact Submissions for Non-Admins (Staff/Manager)**
+
+This will allow an administrator to decide whether users with 'staff' or 'manager' roles can view the contact submissions page in the admin panel.
+
+1.  **Backend Implementation:**
+    *   **Add New Site Setting:**
+        *   **File:** `backend/seed_data.py`
+        *   **Action:** Introduce a new boolean setting in `SITE_SETTINGS`.
+            ```python
+            # In SITE_SETTINGS dictionary:
+            "non_admin_can_view_all_contacts": {"value": True, "category": "Permissions"}
+            ```
+            *   The default `value` (True/False) can be set based on the desired initial state.
+            *   A new category "Permissions" is appropriate.
+        *   **Note:** The `seed_settings` function in `seed_data.py` already handles storing boolean values correctly (as direct booleans, not wrapped in `{"text": ...}`). The `SiteSetting.value` in `models.py` (JSON) and `schemas.py` (`Any`) can accommodate this.
+    *   **API Endpoints (No changes required for this specific control):**
+        *   The existing `GET /api/contact/` endpoint (`backend/routers/contact.py`) is protected by `auth_utils.require_staff`. This means any authenticated user with 'staff', 'manager', or 'admin' role can *technically* fetch the data if they hit the endpoint. The primary control for *visibility* of the page/link will be on the frontend.
+
+2.  **Frontend Implementation:**
+    *   **Update Settings Context:**
+        *   **File:** `frontend/context/SettingsContext.js`
+        *   **Action:** Add the new setting to `defaultSettings`.
+            ```javascript
+            // In defaultSettings object:
+            non_admin_can_view_all_contacts: true, // Match the default in seed_data.py
+            ```
+        *   Ensure the `fetchSettings` logic correctly parses this boolean value if it's ever stored differently (though current setup should be fine).
+    *   **Admin Settings Page UI:**
+        *   **File:** `frontend/pages/admin/settings.js`
+        *   **Action:**
+            *   Add "Permissions" to the `settingCategories` array if it's not already there.
+            *   In the JSX, create a new section for "Permissions" or "Access Control".
+            *   Add a checkbox input corresponding to the `non_admin_can_view_all_contacts` setting.
+                *   Label: "Allow Non-Admin Users (Staff/Manager) to View All Contact Submissions"
+            *   Ensure `handleChange` in `settings.js` can handle boolean values directly for checkboxes and `handleSubmit` saves it correctly to the backend (as a direct boolean).
+    *   **Conditionally Render Navigation Link:**
+        *   **File:** `frontend/components/AdminLayout.js`
+        *   **Action:**
+            *   Use `useSettings()` to get the `non_admin_can_view_all_contacts` setting.
+            *   Modify the rendering logic for the "Contactos" (Contacts) navigation link:
+                *   If `adminUser.role === 'admin'`, the link is always visible.
+                *   If `adminUser.role === 'manager' || adminUser.role === 'staff'`, the link is visible only if `getSetting('non_admin_can_view_all_contacts')` is true.
+    *   **Page-Level Access Check (Security Fallback):**
+        *   **File:** `frontend/pages/admin/contacts/index.js`
+        *   **Action:**
+            *   In a `useEffect` hook, retrieve the current user's role (already done in `AdminLayout`, can be passed down or re-fetched if simpler) and the `non_admin_can_view_all_contacts` setting from `useSettings()`.
+            *   If the user's role is 'staff' or 'manager' AND the `non_admin_can_view_all_contacts` setting is `false`, redirect the user to `/admin/dashboard` and display an appropriate `toast.error` message (e.g., "Access Denied: You do not have permission to view contact submissions.").
+
+**II. Admin Control: Access to Property Listings Management for Non-Admins**
+
+*   **Current System Review:**
+    *   **Viewing Property List in Admin:** `frontend/components/AdminLayout.js` already permits 'staff' and 'manager' roles to see the "Propiedades" link and access the page (`/admin/properties`).
+    *   **Property CRUD Operations (Backend):** `backend/routers/properties.py` uses `auth_utils.require_manager` for creating (`POST`), updating (`PUT`), and deleting (`DELETE`) properties. This means:
+        *   'Admin' can perform all CRUD.
+        *   'Manager' can perform all CRUD.
+        *   'Staff' CANNOT perform CRUD; they can only view the list in the admin panel.
+    *   **Admin's "Control":** The administrator's control here is exercised by assigning users to appropriate roles:
+        *   Assign to 'Manager' if CRUD on properties is desired for that non-admin user.
+        *   Assign to 'Staff' if view-only access (within the admin panel) is desired.
+
+*   **Conclusion for Property Access Control:**
+    *   The current role-based system effectively provides the admin with control over who can manage properties. No new specific setting (like the one for contacts) seems necessary for this aspect, as the distinction between 'manager' and 'staff' roles already covers different levels of property management capabilities.
+    *   The plan is to **maintain the current mechanism.** If the user desires 'staff' to also have some CRUD capabilities on properties, that would be a new feature request requiring changes to backend route protection.
+
+**III. Enhancement: Assigning Contacts and Role-Based Filtering**
+
+This feature allows for better workflow if non-admins *can* view contacts. Admins/Managers can assign contacts to specific staff members, and staff members would then primarily see their assigned contacts.
+
+1.  **Backend Implementation:**
+    *   **Database Model & Schema (Verify):**
+        *   `backend/models.py`: `Contact` model already has `assigned_to_id = Column(Integer, ForeignKey("users.id"), nullable=True)` and `assigned_to = relationship("User")`. This is correct.
+        *   `backend/schemas.py`: `ContactBase` includes `assigned_to_id: Optional[int] = None`. `ContactUpdate` should be able to receive `assigned_to_id`. Since `ContactUpdate` is a generic `BaseModel` for patching, it can accept any field from `ContactBase` as optional.
+    *   **CRUD Operations:**
+        *   **File:** `backend/crud/contacts.py`
+        *   **`update_contact` function:** Ensure it correctly updates the `assigned_to_id` field on the `db_contact` object if provided in `contact_update`.
+            ```python
+            # Inside update_contact, after update_data = contact_update.dict(exclude_unset=True):
+            # No specific change needed if assigned_to_id is part of ContactUpdate schema and setattr is used.
+            # However, ensure that `None` explicitly unassigns.
+            if "assigned_to_id" in update_data:
+                setattr(db_contact, "assigned_to_id", update_data["assigned_to_id"]) # Handles None for unassignment
+            ```
+        *   **`get_contacts` function:** Modify to filter based on user role.
+            *   Add `current_user: models.User` as a parameter.
+            *   Modify the query:
+                ```python
+                # query = db.query(models.Contact) # existing
+                if current_user.role == models.Role.staff:
+                    # Staff see contacts assigned to them OR unassigned contacts
+                    query = query.filter(
+                        (models.Contact.assigned_to_id == current_user.id) |
+                        (models.Contact.assigned_to_id == None)
+                    )
+                # Admins and Managers see all contacts (no additional filter based on assignment by default)
+                # return query.order_by(...).offset(skip).limit(limit).all() # existing
+                ```
+                *   *Decision Point for User:* Confirm if staff should also see *unassigned* contacts. The example above includes this.
+    *   **API Endpoints:**
+        *   **File:** `backend/routers/contact.py`
+        *   **`list_submissions` (GET /api/contact/):**
+            *   The `current_user: models.User = Depends(auth_utils.require_staff)` dependency already provides the user object.
+            *   Pass this `current_user` to the modified `crud_contact.get_contacts(db, skip, limit, current_user)`.
+        *   **`update_submission` (PUT /api/contact/{submission_id}):**
+            *   The `submission_update: schemas.ContactUpdate` should already allow `assigned_to_id` to be passed if the schema is flexible or explicitly includes it. `ContactUpdate` in `schemas.py` is currently very basic (`is_read` only). It needs to be expanded to allow `assigned_to_id: Optional[int] = None`.
+
+2.  **Frontend Implementation:**
+    *   **Update `ContactUpdate` Schema in Frontend (if a typed service layer exists, or for mental model):**
+        *   Ensure that when making a PUT request to update a contact, the body can include `assigned_to_id`.
+    *   **Contact Submissions Page UI:**
+        *   **File:** `frontend/pages/admin/contacts/index.js`
+        *   **Actions:**
+            *   Fetch a list of users who can be assignees (e.g., 'staff' and 'manager' roles) from `GET /api/users/` (requires admin/manager permission for this endpoint itself, or a new more limited endpoint if needed).
+            *   For each contact row, if the logged-in user is 'admin' or 'manager':
+                *   Add a dropdown menu (e.g., "Assign to:").
+                *   Populate the dropdown with the fetched list of assignable users (plus an "Unassigned" option).
+                *   When an assignment changes, make a `PUT` request to `/api/contact/{submission_id}` with the body `{"assigned_to_id": selectedUserIdOrNull}`.
+                *   Update the local state or re-fetch contacts to show the change.
+            *   The main list of contacts will now be filtered by the backend logic if a 'staff' user is logged in. Admins/Managers will see a broader list. 

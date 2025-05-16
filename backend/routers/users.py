@@ -9,7 +9,7 @@ from .. import schemas, models
 from ..core.database import get_db
 from ..core.config import settings
 from ..auth import utils as auth_utils
-from ..crud import users as crud_user
+from ..crud import user as crud_user
 
 router = APIRouter()
 

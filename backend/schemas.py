@@ -30,11 +30,14 @@ class PropertyBase(BaseModel):
     listing_type: Optional[str] = None # e.g., "Venta de propiedad", "Renta"
     bedrooms: Optional[int] = None
     bathrooms: Optional[int] = None
-    area: Optional[float] = None
+    square_feet: Optional[int] = None
     image_url: Optional[HttpUrl] = None # Main image URL
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     is_featured: Optional[bool] = False
+    # For receiving assignment/creator in requests, not for response model directly unless needed
+    assigned_to_id: Optional[int] = None
+    created_by_user_id: Optional[int] = None # Will be set by backend based on authenticated user
 
 class PropertyCreate(PropertyBase):
     # Field for new additional images, URLs will be provided after upload
@@ -55,6 +58,11 @@ class Property(PropertyBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     images: List[PropertyImage] = [] # Include related images (PropertyImage schema)
+    clicks: List['PropertyClick'] = [] # Include click records to show click count
+
+    # For returning assigned user details in responses
+    assigned_to: Optional['User'] = None # Forward reference
+    created_by: Optional['User'] = None # Forward reference
 
     class Config:
         orm_mode = True
@@ -156,12 +164,13 @@ class ContactCreate(ContactBase):
 
 class ContactUpdate(BaseModel):
     is_read: Optional[bool] = None
+    assigned_to_id: Optional[int] = None
 
 class Contact(ContactBase):
     id: int
     submitted_at: datetime
     is_read: bool
-    assigned_to: Optional[User] = None # To hold the related User object
+    assigned_to: Optional['User'] = None # Changed to forward reference
     class Config:
         orm_mode = True
 
@@ -170,3 +179,25 @@ class Contact(ContactBase):
 class UploadResponse(BaseModel):
     filename: str
     url: HttpUrl 
+
+# Schemas for Property Click Tracking
+class PropertyClickBase(BaseModel):
+    property_id: int
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+
+class PropertyClickCreate(PropertyClickBase):
+    pass
+
+class PropertyClick(PropertyClickBase):
+    id: int
+    clicked_at: datetime
+
+    class Config:
+        orm_mode = True 
+
+# Update forward refs
+Property.model_rebuild()
+Contact.model_rebuild()
+# Add model_rebuild() for any other schemas that use forward references if needed.
+# User.model_rebuild() # Not strictly necessary for User itself unless it refers to others, but doesn't hurt 

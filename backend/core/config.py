@@ -32,7 +32,7 @@ class Settings(BaseSettings):
 
     # CORS Origins (adjust as needed for production)
     # Example: BACKEND_CORS_ORIGINS="http://localhost:3000,https://your-frontend-domain.com"
-    BACKEND_CORS_ORIGINS: list[str] = os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:3000").split(",")
+    BACKEND_CORS_ORIGINS: list[str] = os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
 
     # Upload Directory (if handling uploads locally)
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "backend/static/uploads")

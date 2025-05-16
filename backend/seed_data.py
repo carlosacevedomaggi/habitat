@@ -266,7 +266,8 @@ SITE_SETTINGS = {
     "theme_warning_color": {"value": "#eab308", "category": "ThemeColors"},
     "theme_text_color_primary_lightbg": {"value": "#111827", "category": "ThemeColors"},
     "theme_text_color_secondary_lightbg": {"value": "#6b7280", "category": "ThemeColors"},
-    "home_background_url": {"value": "/images/default-hero-bg.jpg", "category": "Appearance"}
+    "home_background_url": {"value": "/images/default-hero-bg.jpg", "category": "Appearance"},
+    "non_admin_can_view_all_contacts": {"value": True, "category": "Permissions"}
 }
 
 # ---------------------------------------------------------------------------
@@ -277,7 +278,9 @@ def main():
     db: Session = SessionLocal()
     try:
         seed_admin(db)
+        seed_users(db)
         seed_properties(db)
+        seed_contacts(db)
         seed_team(db)
         seed_settings(db)
         print("✔ Seed completed. You can now log in with admin / Admin123! (change the password).")
@@ -302,15 +305,89 @@ def seed_admin(db: Session):
     print("Admin user created.")
 
 
+def seed_users(db: Session):
+    """Seed sample manager and staff users for demo."""
+    sample_users = [
+        {"username": "manager1", "email": "manager1@example.com", "password": "Password123!", "role": Role.manager},
+        {"username": "manager2", "email": "manager2@example.com", "password": "Password123!", "role": Role.manager},
+        {"username": "staff1", "email": "staff1@example.com", "password": "Password123!", "role": Role.staff},
+        {"username": "staff2", "email": "staff2@example.com", "password": "Password123!", "role": Role.staff},
+        {"username": "staff3", "email": "staff3@example.com", "password": "Password123!", "role": Role.staff},
+    ]
+    created = []
+    for u in sample_users:
+        if not db.query(models.User).filter(models.User.username == u["username"]).first():
+            pwd_hash = auth_utils.get_password_hash(u["password"])
+            user = models.User(username=u["username"], email=u["email"], password_hash=pwd_hash, role=u["role"])
+            db.add(user)
+            created.append(u["username"])
+    db.commit()
+    if created:
+        print(f"Inserted sample users: {', '.join(created)}")
+    else:
+        print("Sample users already exist – skipping.")
+
+
+def seed_contacts(db: Session):
+    """Seed sample contact submissions for demo."""
+    users = db.query(models.User).all()
+    properties = db.query(models.Property).limit(10).all()
+    import random
+    sample_contacts = []
+    for i in range(1, 21):
+        prop = random.choice(properties)
+        user = random.choice(users)
+        sample_contacts.append({
+            "name": f"Contact {i}",
+            "email": f"contact{i}@example.com",
+            "phone": f"555-010{i:02d}",
+            "subject": "Inquiry about property",
+            "message": f"Hi, I'm interested in property ID {prop.id}. Please provide more details.",
+            "property_id": prop.id,
+            "assigned_to_id": user.id if user.role != Role.staff else None
+        })
+    created = 0
+    for c in sample_contacts:
+        if not db.query(models.Contact).filter(models.Contact.email == c["email"]).first():
+            contact = models.Contact(**c)
+            db.add(contact)
+            created += 1
+    db.commit()
+    if created:
+        print(f"Inserted {created} sample contact submissions")
+    else:
+        print("Sample contacts already exist – skipping.")
+
+
 def seed_properties(db: Session):
     existing = db.query(models.Property).count()
+    # If sample properties exist, update their coordinates and area fields
     if existing >= len(SAMPLE_PROPERTIES):
-        print("Properties already seeded – skipping sample insertion.")
+        print("Properties already seeded – updating coordinates and area.")
+        for prop in SAMPLE_PROPERTIES:
+            db_prop = db.query(models.Property).filter(models.Property.title == prop["title"]).first()
+            if db_prop:
+                # Update coordinates if provided in seed
+                if "latitude" in prop:
+                    db_prop.latitude = prop["latitude"]
+                if "longitude" in prop:
+                    db_prop.longitude = prop["longitude"]
+                # Update area (square_feet) if seed data had area
+                if "area" in prop:
+                    db_prop.square_feet = prop["area"]
+                db.add(db_prop)
+        db.commit()
+        print("Updated latitude/longitude and area for existing properties.")
         return
 
     for prop in SAMPLE_PROPERTIES:
         prop_data = prop.copy()
         images = prop_data.pop("images", [])
+        # Map legacy fields to current model fields and remove unused keys
+        if "area" in prop_data:
+            prop_data["square_feet"] = prop_data.pop("area")
+        # Remove fields no longer in Property model
+        prop_data.pop("listing_type", None)
         db_prop = models.Property(**prop_data, created_at=datetime.utcnow())
         db.add(db_prop)
         db.commit()

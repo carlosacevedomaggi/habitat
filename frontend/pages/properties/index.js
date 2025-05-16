@@ -29,7 +29,7 @@ export default function PropertiesPage({ properties }) {
 
       if (!numCheck(p.bedrooms, advFilters.minBedrooms, advFilters.maxBedrooms)) return false;
       if (!numCheck(p.bathrooms, advFilters.minBathrooms, advFilters.maxBathrooms)) return false;
-      if (!numCheck(p.area, advFilters.minArea, advFilters.maxArea)) return false;
+      if (!numCheck(p.square_feet, advFilters.minArea, advFilters.maxArea)) return false;
       if (!numCheck(p.price, advFilters.minPrice, advFilters.maxPrice)) return false;
 
       return true;

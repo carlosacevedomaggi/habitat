@@ -65,7 +65,7 @@ export default function PropertySlider({ title, properties }) {
                     </div>
                     <div>
                       <p className="text-primary font-bold text-sm mb-1">${prop.price?.toLocaleString() || '—'}</p>
-                      <p className="text-xs text-gray-600">{prop.area ? `${prop.area} m²` : ''}</p>
+                      <p className="text-xs text-gray-600">{prop.square_feet ? `${prop.square_feet} m²` : ''}</p>
                     </div>
                   </div>
                 </div>

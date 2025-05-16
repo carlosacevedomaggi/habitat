@@ -31,27 +31,47 @@ class User(Base):
     # created_at = Column(DateTime(timezone=True), server_default=func.now())
     # updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
+    # Relationship to properties owned by this user
+    properties = relationship("Property", foreign_keys="[Property.owner_id]", back_populates="owner")
+    # If user can be assigned to contacts
+    assigned_contacts = relationship("Contact", foreign_keys="[Contact.assigned_to_id]", back_populates="assigned_to")
+    # If user can be assigned to properties
+    assigned_properties = relationship("Property", foreign_keys="[Property.assigned_to_id]", back_populates="assigned_to")
+    # Properties created by this user
+    created_properties = relationship("Property", foreign_keys="[Property.created_by_user_id]", back_populates="created_by")
+
 class Property(Base):
     __tablename__ = "properties"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=False)
-    description = Column(Text)
+    title = Column(String, index=True)
+    description = Column(String)
     price = Column(Float)
     location = Column(String)
-    property_type = Column(String) # Consider Enum or relationship if types are fixed
-    listing_type = Column(String) # "Venta", "Renta"
-    bedrooms = Column(Integer, nullable=True)
-    bathrooms = Column(Integer, nullable=True)
-    area = Column(Float, nullable=True)
-    image_url = Column(String, nullable=True) # Main image URL
+    bedrooms = Column(Integer)
+    bathrooms = Column(Integer)
+    square_feet = Column(Integer)
+    property_type = Column(String)  # e.g., 'House', 'Apartment', 'Condo'
+    status = Column(String, default="available")  # e.g., 'available', 'sold', 'pending'
+    image_url = Column(String, nullable=True) 
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     is_featured = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    images = relationship("PropertyImage", back_populates="property")
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True) # Retaining for now, though may be superseded by created_by
+    owner = relationship("User", foreign_keys=[owner_id], back_populates="properties")
+
+    # New fields for assignment and creator tracking
+    assigned_to_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    assigned_to = relationship("User", foreign_keys=[assigned_to_id], back_populates="assigned_properties")
+
+    created_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_by = relationship("User", foreign_keys=[created_by_user_id], back_populates="created_properties")
+
+    images = relationship("PropertyImage", back_populates="property", cascade="all, delete-orphan")
+    clicks = relationship("PropertyClick", back_populates="property") # Relationship to PropertyClick
 
 class PropertyImage(Base):
     __tablename__ = "property_images"
@@ -86,7 +106,7 @@ class Contact(Base):
     is_read = Column(Boolean, default=False)
     assigned_to_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
-    assigned_to = relationship("User")
+    assigned_to = relationship("User", foreign_keys=[assigned_to_id], back_populates="assigned_contacts")
     # Add relationship back to property if needed
     # property = relationship("Property")
 
@@ -94,3 +114,21 @@ class Contact(Base):
 # You might need to adjust data types (e.g., use Numeric for price) 
 # and add constraints based on requirements.
 # Consider using Alembic for database migrations. 
+
+# New Model for Property Clicks
+class PropertyClick(Base):
+    __tablename__ = "property_clicks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    property_id = Column(Integer, ForeignKey("properties.id"), nullable=False)
+    clicked_at = Column(DateTime(timezone=True), server_default=func.now())
+    ip_address = Column(String, nullable=True)
+    user_agent = Column(String, nullable=True)
+    # We could add a user_id if we want to track clicks by logged-in users specifically
+    # user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    property = relationship("Property", back_populates="clicks")
+    # user = relationship("User") # If user_id is added
+
+# If you have a different base or metadata object, ensure this model uses it.
+# For example, if you are using Base = declarative_base() from a different file. 
