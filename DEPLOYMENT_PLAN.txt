@@ -1,0 +1,115 @@
+Deployment Plan for Habitat (AWS)
+================================
+
+1. Source Control & CI/CD
+   • Host code on GitHub (public or private repo).
+   • GitHub Actions: on push to main, build Docker images and push to Amazon ECR.
+   • Deploy to target via AWS CodeDeploy or SSH into instance.
+
+2. Infrastructure
+   • AWS Lightsail instance (Ubuntu 22.04, $3.50/mo).
+   • Install Docker & Docker Compose:
+     - backend: FastAPI container
+     - frontend: Next.js container (SSR)
+     - Nginx container as reverse proxy (SSL termination)
+
+3. Database
+   • AWS RDS PostgreSQL (free tier for 12 months).
+   • Instance: db.t3.micro, 20 GB storage.
+   • VPC security group: allow only app server.
+
+4. SSL & DNS
+   • Route 53 for DNS management.
+   • AWS Certificate Manager: issue free TLS cert.
+   • Attach cert to Lightsail load balancer or Nginx.
+
+5. Remote Access & Editing
+   • Enable SSH on Lightsail; use key-pair.
+   • Recommend VS Code Remote SSH for on-the-fly fixes.
+   • (Optional) AWS Cloud9 IDE attached to same VPC.
+
+6. Logging & Monitoring
+   • CloudWatch Logs agent on instance for Docker logs.
+   • CloudWatch Alarms: CPU, memory, disk usage.
+
+7. Security (low→moderate)
+   • Security Groups: only ports 22 (SSH), 80/443 (HTTP/HTTPS) open.
+   • IAM role for instance with minimal permissions (ECR pull, CloudWatch write).
+   • Regular updates: `apt update && apt upgrade` via cron.
+   • Fail2ban to protect SSH.
+
+8. Cost Optimization
+   • Remove unused volumes, old images.
+   • Use free tier RDS; switch to SQLite on Lightsail if budget becomes critical (with regular backups).
+   • Snapshots: weekly automated backups of RDS and instance.
+
+9. Team Workflow
+   • Document environment variables in repo (`.env.example`).
+   • ChatOps: integrate Alert notifications to Slack/Telegram via CloudWatch.
+   • On incident: GitHub Issues + tag @dev-team; hotfix via branch → GH Actions → deploy.
+
+10. Estimated Monthly Costs
+   • Lightsail instance: $3.50/mo
+   • RDS PostgreSQL: free tier (12 mo), then ~ $15/mo
+   • Route 53 hosted zone: $0.50/mo
+   • Data transfer: ~$2–5/mo (low traffic)
+   • ECR storage: <$1/mo
+   → Total: approx. $6–25/mo
+
+11. Detailed Deployment Steps
+   a. Provision Lightsail (Ubuntu 22.04)
+      - Attach static IP
+      - Open ports 22, 80, 443 in firewall
+   b. Install Docker & Compose
+      ```bash
+      sudo apt update && sudo apt install docker.io docker-compose -y
+      sudo usermod -aG docker $USER
+      ```
+   c. Configure Docker Compose
+      - Create `docker-compose.yml`:
+        ```yaml
+        version: '3'
+        services:
+          backend:
+            image: 844658936263.dkr.ecr.us-east-2.amazonaws.com/habitat-backend:latest
+            env_file: .env
+            ports: ['8000:8000']
+          frontend:
+            image: 844658936263.dkr.ecr.us-east-2.amazonaws.com/habitat-frontend:latest
+            env_file: .env.local
+            ports: ['3000:3000']
+          proxy:
+            image: nginx:latest
+            volumes:
+              - ./nginx.conf:/etc/nginx/nginx.conf:ro
+            ports: ['80:80','443:443']
+        ```
+   d. DNS & SSL
+      - Route 53 hosted zone → point A record to static IP
+      - AWS Certificate Manager → issue cert → attach in Nginx
+   e. CI/CD with GitHub Actions
+      - Build & tag backend/frontend images
+      - Authenticate to ECR & push images:
+        ```bash
+        aws ecr get-login-password --region us-east-2 \
+          | docker login --username AWS --password-stdin 844658936263.dkr.ecr.us-east-2.amazonaws.com
+        docker push 844658936263.dkr.ecr.us-east-2.amazonaws.com/habitat-backend:latest
+        docker push 844658936263.dkr.ecr.us-east-2.amazonaws.com/habitat-frontend:latest
+        ```
+      - After pulling new images, run DB migrations:
+        ```bash
+        docker-compose run --rm backend alembic upgrade head
+        ```
+      - SSH to Lightsail & deploy:
+        ```bash
+        docker-compose pull && docker-compose up -d
+        ```
+      - Health-check & rollback:
+        ```bash
+        curl --fail http://localhost/health || { echo 'Health check failed, rolling back'; docker-compose down && docker-compose up -d; }
+        ```
+   f. Remote Editing & Hotfixes
+      - VS Code Remote SSH into instance
+      - Create hotfix branch → commit → push → Actions → auto-deploy
+
+That's the full setup with cost and deployment details. 

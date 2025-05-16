@@ -87,6 +87,7 @@ celerybeat.pid
 # Environments
 .env
 .env.* # Match .env.development, .env.production, etc.
+!.env.example
 .venv
 env/
 venv/
