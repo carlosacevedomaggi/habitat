@@ -9,7 +9,7 @@ export default function Header() {
   const siteName = loading ? 'Habitat' : getSetting('site_name', 'Habitat');
 
   return (
-    <header className="bg-gray-100 text-gray-900 shadow-md sticky top-0 z-50">
+    <header className="bg-theme-header-background text-theme-header-text shadow-md sticky top-0 z-50">
       <div className="container mx-auto flex items-center justify-between p-4">
         <Link href="/" legacyBehavior passHref>
           <a className="flex items-center space-x-2 text-2xl font-bold text-accent hover:opacity-80 transition-opacity">

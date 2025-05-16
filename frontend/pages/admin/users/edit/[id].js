@@ -170,16 +170,17 @@ export default function EditUserPage() {
         </form>
       </div>
       <style jsx>{`
-        .input-style { @apply w-full bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm p-2.5 focus:ring-accent focus:border-accent; }
-        .btn-cancel { @apply px-6 py-2.5 border border-gray-600 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 transition-colors; }
+        .input-style { @apply w-full bg-theme-background-secondary text-theme-text-on-dark border-theme-border rounded-md shadow-sm p-2.5 focus:ring-accent focus:border-accent; }
+        .btn-cancel { @apply px-6 py-2.5 border border-theme-border text-sm font-medium rounded-md text-theme-text-on-dark hover:bg-theme-background-secondary transition-colors; }
         .btn-submit-loading {
           display: inline-flex; align-items: center; border: 1px solid transparent;
           font-size: 0.875rem; font-weight: 500; border-radius: 0.375rem; 
           box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); 
-          color: #1f2937; background-color: var(--color-accent);
+          color: var(--color-text-on-dark);
+          background-color: var(--color-accent);
         }
-        .btn-submit-loading:hover { background-color: rgba(var(--color-accent-rgb, 200 167 115), 0.8); }
-        .btn-submit-loading:focus { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px var(--color-gray-800, #1f2937), 0 0 0 4px var(--color-accent); }
+        .btn-submit-loading:hover { background-color: var(--color-primary-dark); }
+        .btn-submit-loading:focus { outline: 2px solid transparent; outline-offset: 2px; box-shadow: 0 0 0 2px var(--color-background-secondary), 0 0 0 4px var(--color-accent); }
         .btn-submit-loading:disabled { opacity: 0.5; }
         .btn-submit-loading svg { animation: spin 1s linear infinite; margin-left: -0.25rem; margin-right: 0.75rem; height: 1.25rem; width: 1.25rem; }
       `}</style>

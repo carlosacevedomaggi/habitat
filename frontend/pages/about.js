@@ -29,6 +29,17 @@ export default function AboutPage() {
   const pageTitle = getSetting('about_title', 'Sobre Nosotros');
   const siteName = getSetting('site_name', 'Habitat');
 
+  // New: Get content from settings
+  const aboutMainTitle = getSetting('about_page_main_title', pageTitle); // Fallback to original pageTitle logic if specific setting not found
+  const aboutMainParagraph = getSetting('about_page_main_paragraph', 'Comprometidos con encontrar tu espacio ideal.');
+  const missionTitle = getSetting('about_page_mission_title', 'Nuestra Misión');
+  const missionParagraph = getSetting('about_page_mission_paragraph', 'Facilitar a nuestros clientes el proceso de encontrar y adquirir la propiedad de sus sueños, ofreciendo asesoría experta, un portafolio diverso y de alta calidad, y un compromiso inquebrantable con la transparencia y la satisfacción del cliente.');
+  const visionTitle = getSetting('about_page_vision_title', 'Nuestra Visión');
+  const visionParagraph = getSetting('about_page_vision_paragraph', 'Ser la agencia inmobiliaria líder y más respetada en Caracas y sus alrededores, reconocida por nuestra integridad, innovación y por superar consistentemente las expectativas de quienes confían en nosotros para sus decisiones inmobiliarias más importantes.');
+  const historyTitle = getSetting('about_history_title', 'Nuestra Historia'); // Assuming this might also be made dynamic
+  const historyText = getSetting('about_history_text', 'Con más de una década de experiencia en el sector inmobiliario de Caracas, Habitat se ha consolidado como un referente de confianza y profesionalismo. Desde nuestros inicios, hemos trabajado con la visión de transformar la manera en que las personas encuentran y adquieren propiedades, enfocándonos en un servicio personalizado y resultados excepcionales.');
+  const valuesMainTitle = getSetting('about_values_title', 'Nuestros Valores');
+
   if (settingsLoading || teamLoading) {
     return <div className="text-center py-10 text-gray-300">Cargando...</div>;
   }
@@ -46,9 +57,9 @@ export default function AboutPage() {
         style={{ backgroundImage: `linear-gradient(rgba(var(--color-primary-rgb, 40 46 75), 0.85), rgba(var(--color-secondary-rgb, 36 44 60), 0.9)), url(${getSetting('about_hero_image_url', '/images/default-hero-bg.jpg')})` }}
       >
         <div className="container mx-auto px-4 text-center relative z-10">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in-down">{pageTitle}</h1>
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in-down">{aboutMainTitle}</h1>
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto animate-fade-in-up">
-            {getSetting('about_subtitle', 'Comprometidos con encontrar tu espacio ideal.')}
+            {aboutMainParagraph}
           </p>
         </div>
       </section>
@@ -58,31 +69,41 @@ export default function AboutPage() {
         <div className="container mx-auto px-4 space-y-12">
           {/* History Section */}
           <div className="text-center md:text-left">
-            <h2 className="text-3xl font-semibold text-accent mb-6">{getSetting('about_history_title', 'Nuestra Historia')}</h2>
+            <h2 className="text-3xl font-semibold text-accent mb-6">{historyTitle}</h2>
             <p className="text-gray-300 leading-relaxed whitespace-pre-line">
-              {getSetting('about_history_text', 'Con más de una década de experiencia en el sector inmobiliario de Caracas, Habitat se ha consolidado como un referente de confianza y profesionalismo. Desde nuestros inicios, hemos trabajado con la visión de transformar la manera en que las personas encuentran y adquieren propiedades, enfocándonos en un servicio personalizado y resultados excepcionales.')}
+              {historyText}
             </p>
           </div>
 
           {/* Mission & Vision Grid */}
           <div className="grid md:grid-cols-2 gap-12 items-start">
             <div className="bg-gray-700 p-8 rounded-xl shadow-lg">
-              <h3 className="text-2xl font-semibold text-accent mb-4"><i className="fas fa-bullseye mr-2"></i> {getSetting('about_mission_title', 'Nuestra Misión')}</h3>
+              <h3 className="text-2xl font-semibold text-accent mb-4"><i className="fas fa-bullseye mr-2"></i> {missionTitle}</h3>
               <p className="text-gray-300 leading-relaxed whitespace-pre-line">
-                {getSetting('about_mission_text', 'Facilitar a nuestros clientes el proceso de encontrar y adquirir la propiedad de sus sueños, ofreciendo asesoría experta, un portafolio diverso y de alta calidad, y un compromiso inquebrantable con la transparencia y la satisfacción del cliente.')}
+                {missionParagraph}
               </p>
             </div>
             <div className="bg-gray-700 p-8 rounded-xl shadow-lg">
-              <h3 className="text-2xl font-semibold text-accent mb-4"><i className="fas fa-eye mr-2"></i> {getSetting('about_vision_title', 'Nuestra Visión')}</h3>
+              <h3 className="text-2xl font-semibold text-accent mb-4"><i className="fas fa-eye mr-2"></i> {visionTitle}</h3>
               <p className="text-gray-300 leading-relaxed whitespace-pre-line">
-                {getSetting('about_vision_text', 'Ser la agencia inmobiliaria líder y más respetada en Caracas y sus alrededores, reconocida por nuestra integridad, innovación y por superar consistentemente las expectativas de quienes confían en nosotros para sus decisiones inmobiliarias más importantes.')}
+                {visionParagraph}
               </p>
             </div>
           </div>
 
+          {/* Nuestra Historia Section */}
+          <div className="bg-gray-700 p-6 md:p-8 rounded-lg shadow-lg">
+            <h3 className="text-2xl md:text-3xl font-semibold text-accent mb-4">
+              {settingsLoading ? 'Nuestra Historia' : getSetting('about_page_history_title', 'Nuestra Historia')}
+            </h3>
+            <p className="text-lg md:text-xl text-gray-400 leading-relaxed">
+              {settingsLoading ? 'Cargando...' : getSetting('about_page_history_paragraph', 'Con más de una década de experiencia en el sector inmobiliario de Caracas, Habitat se ha consolidado como un referente de confianza y profesionalismo. Desde nuestros inicios, hemos trabajado con la visión de transformar la manera en que las personas encuentran y adquieren propiedades, enfocándonos en un servicio personalizado y resultados excepcionales.')}
+            </p>
+          </div>
+
           {/* Values Section */}
           <div>
-            <h2 className="text-3xl font-semibold text-accent mb-8 text-center">{getSetting('about_values_title', 'Nuestros Valores')}</h2>
+            <h2 className="text-3xl font-semibold text-accent mb-8 text-center">{valuesMainTitle}</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {[1, 2, 3, 4].map(i => (
                 getSetting(`about_value_${i}_title`) && (

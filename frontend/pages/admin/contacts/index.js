@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AdminLayout from '../../../components/AdminLayout';
 import Link from 'next/link';
 import Head from 'next/head';
+import { toast } from 'react-toastify';
 
 const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
@@ -9,6 +10,7 @@ export default function ContactSubmissionsPage() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [pdfLoading, setPdfLoading] = useState({});
 
   useEffect(() => {
     const token = localStorage.getItem('habitat_admin_token');
@@ -28,6 +30,47 @@ export default function ContactSubmissionsPage() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleDownloadPdf = async (submissionId) => {
+    setPdfLoading(prev => ({ ...prev, [submissionId]: true }));
+    const token = localStorage.getItem('habitat_admin_token');
+    if (!token) {
+      toast.error('Authentication required to download PDF.');
+      setPdfLoading(prev => ({ ...prev, [submissionId]: false }));
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_ROOT}/api/contact/${submissionId}/pdf`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ detail: 'Failed to download PDF.'}));
+        throw new Error(errorData.detail || 'Could not download PDF.');
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `contact_submission_${submissionId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('PDF downloaded successfully.');
+
+    } catch (err) {
+      console.error('PDF download error:', err);
+      toast.error(err.message || 'Failed to download PDF.');
+    } finally {
+      setPdfLoading(prev => ({ ...prev, [submissionId]: false }));
+    }
+  };
 
   return (
     <AdminLayout title="Contact Submissions">
@@ -59,7 +102,13 @@ export default function ContactSubmissionsPage() {
                   <td className="px-4 py-2 truncate max-w-xs">{s.subject}</td>
                   <td className="px-4 py-2">{new Date(s.submitted_at).toLocaleString()}</td>
                   <td className="px-4 py-2 text-right space-x-2">
-                    <a href={`${API_ROOT}/api/contact/${s.id}/pdf`} target="_blank" rel="noopener noreferrer" className="text-accent underline text-sm">PDF</a>
+                    <button
+                      onClick={() => handleDownloadPdf(s.id)}
+                      disabled={pdfLoading[s.id]}
+                      className="text-accent underline text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {pdfLoading[s.id] ? 'Downloading...' : 'PDF'}
+                    </button>
                     <button
                       onClick={() => handleSendEmail(s.id)}
                       className="text-blue-400 hover:text-blue-500 text-sm"

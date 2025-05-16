@@ -1,195 +1,181 @@
-# Habitat – Monolith ➜ 2-Tier Migration (Next.js + FastAPI)
+# Habitat – Modern Real Estate Platform (Next.js + FastAPI)
 
-> ⚠️  *Work-in-Progress (WIP)* – The project is currently being migrated from a Flask/Jinja2 monolith to a modern **Next.js (React)** frontend and **FastAPI** backend.  Both codebases now live in-repo side-by-side with the original Flask app for reference.
+## Overview
 
-## Quick-start (new stack)
-
-### Prerequisites
-1. Node.js ≥ 18 (for the Next.js frontend)
-2. Python ≥ 3.10 (for the FastAPI backend)
-3. PostgreSQL 14+ (or SQLite for quick local tests)
-
-### Backend (FastAPI)
-```bash
-cd backend
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-# copy .env.sample -> .env and edit DATABASE_URL / SECRET_KEY
-uvicorn backend.main:app --reload
-```
-API will be available at `http://localhost:8000`.
-
-### Frontend (Next.js)
-```bash
-cd frontend
-npm install          # or pnpm / yarn
-npm run dev          # starts on http://localhost:3000
-```
-
-### Directory snapshot (WIP)
-```
-frontend/        Next.js 14 app (pages/, components/, services/, styles/)
-backend/         FastAPI app (routers/, models.py, schemas.py, core/, auth/)
-legacy/          Flask monolith (server.py, templates/, static/) – pending removal
-```
-
----
-
-Below is the original README describing the **legacy Flask application**.  Until the migration finishes it remains for reference.
+Habitat is a modern, full-featured real estate platform built with a **Next.js (React)** frontend and a **FastAPI (Python)** backend. This project provides a comprehensive solution for managing property listings, agents, user interactions, and site content.
 
 ## Features
 
-- Property listings with map integration
-- Team member management
-- Contact form with PDF export
-- Admin dashboard
-- Dynamic content management
-- Responsive design
-- Image upload handling
-- Dark theme
+*   **Property Listings:** Detailed property information, image galleries, search and filtering, map integration.
+*   **User Roles:** Admin, Manager, Staff with distinct permissions.
+*   **Admin Dashboard:** Centralized management of:
+    *   Properties (CRUD operations)
+    *   Users and Roles
+    *   Team Members
+    *   Site Settings (contact info, social media, About Us page content, footer, etc.)
+    *   Appearance (theme colors - currently view-only, homepage background image)
+*   **Contact Form:** Submissions stored and viewable in admin, with PDF export.
+*   **Dynamic Content:** About page, Footer, Social Media links are editable from admin panel.
+*   **Image Uploads:** For properties, team members, and site background.
+*   **Authentication:** JWT-based authentication for the backend API.
+*   **Responsive Design:** Adapts to various screen sizes.
+*   **Dark Theme:** For the public-facing site, dynamically configurable (colors viewable in admin).
 
-## Setup Instructions
+## Tech Stack
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/Habitatt.git
-cd Habitatt
-```
-
-2. Create a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-4. Set up environment variables:
-Create a `.env` file in the root directory with:
-```
-FLASK_APP=server.py
-FLASK_ENV=development
-SECRET_KEY=your-secret-key-here
-```
-
-5. Initialize the database:
-```bash
-python server.py
-```
-
-6. Run the development server:
-```bash
-flask run
-```
-
-The application will be available at `http://localhost:5000`
-
-## Default Admin Account
-
-- Username: admin
-- Password: admin123
-
-**Important**: Change these credentials in production!
+*   **Frontend:** Next.js 14 (React), Tailwind CSS, `react-toastify`, `react-leaflet`
+*   **Backend:** FastAPI, Python 3.10+, SQLAlchemy (ORM), PostgreSQL (recommended) / SQLite, Alembic (migrations), Pydantic
+*   **Authentication:** JWT (JSON Web Tokens)
 
 ## Directory Structure
 
 ```
-Habitatt/
-├── static/
-│   ├── images/
-│   ├── uploads/
-│   ├── style.css
-│   └── script.js
-├── templates/
-│   ├── admin/
-│   ├── base.html
-│   ├── index.html
-│   └── ...
-├── server.py
-├── requirements.txt
+habitat/
+├── frontend/            # Next.js application
+│   ├── components/      # React components
+│   ├── context/         # React context (e.g., SettingsContext)
+│   ├── pages/           # Next.js pages (including admin UI)
+│   ├── public/          # Static assets (images, fonts)
+│   ├── services/        # API service functions
+│   ├── styles/          # Global styles, Tailwind config
+│   ├── next.config.js
+│   └── package.json
+├── backend/             # FastAPI application
+│   ├── alembic/         # Alembic migration scripts
+│   ├── auth/            # Authentication logic (JWT, password hashing)
+│   ├── core/            # Core settings, database connection
+│   ├── crud/            # CRUD operations for database models
+│   ├── models.py        # SQLAlchemy ORM models
+│   ├── routers/         # API endpoint definitions
+│   ├── schemas.py       # Pydantic schemas for data validation
+│   ├── static/          # Static files served by backend (e.g., uploads)
+│   ├── utils/           # Utility functions (e.g., PDF generation)
+│   ├── main.py          # FastAPI application entry point
+│   ├── seed_data.py     # Script to populate initial database content
+│   ├── requirements.txt # Python dependencies
+│   └── Dockerfile
+├── .gitignore
 └── README.md
 ```
 
-## Deployment
+## Prerequisites
 
-### Using a VPS:
+1.  **Node.js:** Version 18 or higher (for the Next.js frontend).
+2.  **Python:** Version 3.10 or higher (for the FastAPI backend).
+3.  **Database:** PostgreSQL (recommended for production) or SQLite (for quick local development).
 
-1. Set up a server with Ubuntu/Debian
-2. Install required packages:
+## Setup and Installation
+
+### 1. Clone the Repository
+
 ```bash
-sudo apt update
-sudo apt install python3-pip python3-venv nginx supervisor
+git clone <your-repository-url>
+cd habitat
 ```
 
-3. Clone the repository and set up the application
-4. Configure Nginx and Supervisor
-5. Set up SSL with Let's Encrypt
+### 2. Backend Setup (FastAPI)
 
-### Using Platform as a Service:
+```bash
+cd backend
+python -m venv .venv
+# Activate virtual environment
+# On macOS/Linux:
+source .venv/bin/activate
+# On Windows:
+# .venv\Scripts\activate
 
-The application is ready for deployment on platforms like:
-- Heroku
-- DigitalOcean App Platform
-- Google Cloud Platform
-- AWS Elastic Beanstalk
+pip install -r requirements.txt
+
+# Environment Variables:
+# Create a .env file in the `backend/` directory (you can copy from a .env.example if provided).
+# Essential variables:
+# DATABASE_URL=postgresql+psycopg2://user:password@host:port/dbname  (for PostgreSQL)
+# or for SQLite (default if not set, relative to project root):
+# DATABASE_URL=sqlite:///../habitat_api.db
+# SECRET_KEY=a_very_strong_and_random_secret_key_for_jwt
+# ALGORITHM=HS256 (default)
+# ACCESS_TOKEN_EXPIRE_MINUTES=30 (default)
+# BACKEND_CORS_ORIGINS=http://localhost:3000 (adjust if frontend runs on different port)
+
+# Database Migrations (Alembic):
+# (Ensure your DATABASE_URL in .env is correctly configured first)
+alembic upgrade head  # Applies database migrations
+
+# Seed Initial Data (Optional but Recommended):
+# This creates default admin user, site settings, sample properties, etc.
+python -m seed_data  # Run from within the backend directory
+
+# Run the Backend Development Server:
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+The backend API will be available at `http://localhost:8000`.
+
+### 3. Frontend Setup (Next.js)
+
+```bash
+cd frontend
+npm install          # or pnpm install / yarn install
+
+# Environment Variables:
+# Create a .env.local file in the `frontend/` directory.
+# Essential variable:
+# NEXT_PUBLIC_API_BASE_URL=http://localhost:8000 # URL of your FastAPI backend
+
+# Run the Frontend Development Server:
+npm run dev          # or pnpm dev / yarn dev
+```
+The frontend application will be available at `http://localhost:3000`.
+
+### Default Admin Account (from seed_data.py)
+
+*   **Username:** `admin`
+*   **Password:** `Admin123!`
+*   **Important:** Change these credentials after your first login, especially in a production environment!
+
+## Deployment
+
+### Backend (FastAPI)
+
+*   **Docker:** A `backend/Dockerfile` is provided. Build an image and run it on a container platform.
+    *   `docker build -t habitat-backend ./backend`
+    *   `docker run -d -p 8000:8000 --env-file ./backend/.env habitat-backend`
+*   **Server/VPS:**
+    *   Use a process manager like Supervisor.
+    *   Use an ASGI server like Gunicorn with Uvicorn workers:
+        `gunicorn backend.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000`
+    *   Place behind a reverse proxy like Nginx for SSL termination, caching, and load balancing.
+*   **PaaS:** Platforms like Heroku (with Python buildpack), Google Cloud Run, AWS Elastic Beanstalk.
+
+### Frontend (Next.js)
+
+*   **Vercel:** The easiest way to deploy Next.js applications, offering seamless integration.
+*   **Node.js Server:** Build the app (`npm run build`) and run it with a Node.js server (`npm start`). This can be containerized or run on a VPS with a process manager and reverse proxy.
+*   **Static Export:** If your site has limited dynamic server-side needs, consider static export (`next export`), though this project leverages API routes and SSR/ISR features that benefit from a Node.js environment.
+*   **Netlify, AWS Amplify, Azure Static Web Apps:** Other platforms with good Next.js support.
 
 ## Maintenance
 
-1. Regular backups:
-- Database backups
-- Uploaded images backup
-- Configuration backup
-
-2. Updates:
-- Keep dependencies updated
-- Monitor error logs
-- Update SSL certificates
-
-3. Monitoring:
-- Set up error tracking
-- Monitor server resources
-- Check application logs
+*   **Regular Backups:**
+    *   Database (PostgreSQL `pg_dump`, or SQLite file copy).
+    *   Uploaded files (`backend/static/uploads/` directory).
+*   **Dependency Updates:** Regularly update packages for both frontend (`npm outdated`, `npm update`) and backend (`pip list --outdated`, `pip install -U <package>`) to patch security vulnerabilities and get new features. Test thoroughly after updates.
+*   **Monitoring:**
+    *   Application-level logging and error tracking (e.g., Sentry, LogRocket).
+    *   Server resource monitoring (CPU, memory, disk space).
 
 ## Security Considerations
 
-1. Change default admin credentials
-2. Use strong SECRET_KEY
-3. Keep dependencies updated
-4. Use HTTPS in production
-5. Implement rate limiting
-6. Regular security audits
+*   **Strong `SECRET_KEY`:** Ensure a unique, long, and random secret key for JWT signing in the backend `.env` file.
+*   **Environment Variables:** Never commit sensitive information (API keys, database credentials, secret keys) directly into the codebase. Use `.env` files (added to `.gitignore`) and environment variables in deployment.
+*   **HTTPS:** Enforce HTTPS in production for both frontend and backend.
+*   **CORS:** Configure `BACKEND_CORS_ORIGINS` in the backend correctly to only allow your frontend domain.
+*   **Input Validation:** FastAPI with Pydantic handles request validation. Ensure all inputs are validated.
+*   **SQL Injection:** SQLAlchemy helps prevent SQL injection, but always use its ORM features correctly.
+*   **XSS (Cross-Site Scripting):** React helps mitigate XSS by escaping content by default. Be cautious when using `dangerouslySetInnerHTML`. Sanitize user-generated content if displayed.
+*   **Rate Limiting:** Implement rate limiting on sensitive API endpoints (login, contact form) to prevent abuse.
+*   **Regular Audits:** Periodically review security best practices and audit your application.
+*   **File Uploads:** Validate file types and sizes. Consider scanning uploaded files for malware.
 
 ## License
 
-MIT License
-
-## Support
-
-For support, please open an issue in the repository or contact the development team.
-
-## Recent Feature Updates (May 2025)
-
-1.  **Property Listing Type:**
-    *   Added a "Listing Type" (Tipo de Listado) to property details, allowing properties to be categorized as "Venta de propiedad" (Property Sale) or "Renta" (Rental).
-    *   The admin panel's property form now includes a dropdown to set this attribute.
-    *   This information is displayed on individual property cards (`/properties` page) and on the detailed property view page.
-    *   Database schema for the `Property` table was updated to include the `listing_type` column. Server-side logic in `server.py` handles saving and retrieving this new field, with robust type conversions for all form inputs.
-
-2.  **Image Carousel for Property Cards:**
-    *   Property cards on the `/properties` page now feature an image carousel if multiple images are associated with a property.
-    *   Left and right arrow icons allow users to manually navigate through the images.
-    *   JavaScript in `static/script.js` handles the image switching logic.
-    *   CSS in `static/style.css` styles the arrows and image display.
-
-3.  **TikTok Integration:**
-    *   Added a "TikTok Profile URL" field to the site settings in the admin panel.
-    *   The TikTok icon and link (retrieved from site settings) are now displayed in the website footer (`templates/base.html`) and on the contact page (`templates/contact.html`).
-    *   Default settings for Facebook, Instagram, LinkedIn, and WhatsApp URLs were also added/standardized in the admin settings under the 'social' category.
-
-4.  **Database and Environment Fixes:**
-    *   Resolved `ModuleNotFoundError` by installing dependencies from `requirements.txt` into the virtual environment.
-    *   Addressed `sqlite3.OperationalError: no such column: property.listing_type` by recreating the database to incorporate the new schema.
-    *   Fixed Jinja2 template syntax errors related to list manipulation and unknown tags.
+This project is licensed under the MIT License.

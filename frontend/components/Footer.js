@@ -18,7 +18,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-gray-100 text-gray-900 py-12">
+    <footer className="bg-theme-footer-background text-theme-footer-text py-12">
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left px-4">
         <div>
           <h3 className="text-xl font-semibold text-accent mb-4">{siteName}</h3>
@@ -60,7 +60,7 @@ export default function Footer() {
           </address>
         </div>
       </div>
-      <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-center md:text-left text-sm mt-8 pt-8 border-t border-gray-700">
+      <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-center md:text-left text-sm mt-8 pt-8 border-t border-theme-border">
         <div className="mb-4 md:mb-0">
           <Link href="/" legacyBehavior passHref>
             <a className="inline-block hover:opacity-80 transition-opacity">

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, HttpUrl
-from typing import List, Optional
+from typing import List, Optional, Any
 from datetime import datetime
 from enum import Enum
 
@@ -104,7 +104,7 @@ class LoginRequest(BaseModel):
 
 class SiteSettingBase(BaseModel):
     key: str
-    value: dict 
+    value: Any
     category: Optional[str] = 'General'
 
 class SiteSettingCreate(SiteSettingBase):
@@ -116,7 +116,7 @@ class SiteSettingUpdate(BaseModel):
 
 class SiteSetting(SiteSettingBase):
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # ------------- Team Member Schemas ------------- 
 

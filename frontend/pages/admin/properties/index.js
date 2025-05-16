@@ -37,7 +37,7 @@ export default function AdminPropertiesPage() {
   }, []);
 
   const handleDelete = async (propertyId) => {
-    if (!window.confirm('Are you sure you want to delete this property?')) {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar esta propiedad?')) {
       return;
     }
 

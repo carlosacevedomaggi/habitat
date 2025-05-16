@@ -12,6 +12,8 @@ const settingCategories = {
   contact: "Contact Information",
   social: "Social Media Links",
   theme: "Theme & Appearance",
+  aboutpage: "About Page Content",
+  footer: "Footer Content",
   // Add more categories as they are defined in your backend SiteSettings model/data
 };
 
@@ -46,11 +48,27 @@ export default function AdminSettingsPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleChange = (key, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: { ...prev[key], value: value },
-    }));
+  const handleChange = (key, inputValue) => {
+    setSettings(prev => {
+        const currentSetting = prev[key];
+        let newValue = inputValue;
+        // If the original value was an object like {text: "..."}, update the text property
+        if (typeof currentSetting.value === 'object' && currentSetting.value !== null && 'text' in currentSetting.value) {
+            newValue = { ...currentSetting.value, text: inputValue };
+        } else if (typeof currentSetting.value === 'boolean') {
+            // Ensure boolean values are handled correctly from checkboxes
+            newValue = inputValue;
+        } else if (typeof currentSetting.value === 'number') {
+            newValue = parseFloat(inputValue) || 0;
+        }
+        // Add other type handlings if necessary, e.g. for JSON objects that aren't {text: "..."}
+        // For now, this covers text-based-objects and primitives.
+
+        return {
+            ...prev,
+            [key]: { ...currentSetting, value: newValue },
+        };
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -94,6 +112,10 @@ export default function AdminSettingsPage() {
   const groupedSettings = {};
   for (const key in settings) {
     const category = settings[key].category || 'general';
+    // Exclude 'ThemeColors' category from being processed for the general settings page
+    if (category.toLowerCase() === 'themecolors') {
+      continue;
+    }
     if (!groupedSettings[category]) {
       groupedSettings[category] = [];
     }
@@ -134,7 +156,19 @@ export default function AdminSettingsPage() {
                     else if (setting.key.includes('phone')) inputType = 'tel';
                     else if (setting.key.includes('description') || setting.key.includes('text') || setting.key.includes('message')) inputType = 'textarea';
                     
-                    const value = typeof setting.value === 'object' ? JSON.stringify(setting.value) : setting.value;
+                    // Determine the value to display in the input field
+                    let displayValue = setting.value;
+                    if (typeof setting.value === 'object' && setting.value !== null) {
+                      if ('text' in setting.value) {
+                        displayValue = setting.value.text;
+                      } else {
+                        // For other objects, you might want to stringify or handle differently
+                        // For now, this is a basic fallback. Ideally, complex objects would have custom UI.
+                        displayValue = JSON.stringify(setting.value);
+                      }
+                    } else if (setting.value === null || setting.value === undefined) {
+                        displayValue = ''; // Ensure null/undefined are empty strings for inputs
+                    }
 
                     return (
                       <div key={setting.key}>
@@ -145,7 +179,7 @@ export default function AdminSettingsPage() {
                           <textarea 
                             name={setting.key} 
                             id={setting.key} 
-                            value={value} 
+                            value={displayValue} 
                             onChange={(e) => handleChange(setting.key, e.target.value)} 
                             rows="3"
                             className="w-full input-style"
@@ -164,8 +198,8 @@ export default function AdminSettingsPage() {
                             type={inputType} 
                             name={setting.key} 
                             id={setting.key} 
-                            value={value} 
-                            onChange={(e) => handleChange(setting.key, inputType === 'number' ? parseFloat(e.target.value) || 0 : e.target.value)} 
+                            value={displayValue} 
+                            onChange={(e) => handleChange(setting.key, e.target.value)} 
                             className={`w-full input-style ${inputType === 'color' ? 'h-10 p-1' : ''}`}
                           />
                         )}
@@ -187,7 +221,12 @@ export default function AdminSettingsPage() {
         )}
       </div>
       <style jsx>{`
-        .input-style { @apply w-full bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm p-2.5 focus:ring-accent focus:border-accent; }
+        .input-style { 
+          @apply w-full border rounded-md shadow-sm p-2.5 focus:ring-accent focus:border-accent;
+          background-color: var(--color-header-background);
+          color: var(--color-text-primary-lightbg);
+          border-color: var(--color-border);
+        }
         .btn-submit-loading {
           display: inline-flex; align-items: center; border: 1px solid transparent;
           font-size: 0.875rem; font-weight: 500; border-radius: 0.375rem; 

@@ -36,7 +36,7 @@ export default function AdminTeamPage() {
   }, []);
 
   const handleDelete = async (memberId) => {
-    if (!window.confirm('Are you sure you want to delete this team member?')) return;
+    if (!window.confirm('¿Estás seguro de que quieres eliminar este miembro del equipo?')) return;
     const token = localStorage.getItem('habitat_admin_token');
     if (!token) { 
       toast.error('Authentication required.'); 

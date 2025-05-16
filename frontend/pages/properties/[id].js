@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import ImageCarousel from '../../components/ImageCarousel';
 import MapDisplay from '../../components/Map';
-// import { toast, ToastContainer } from 'react-toastify'; // For contact form
-// import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
@@ -64,16 +64,16 @@ export default function PropertyDetailPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        // toast.success('Mensaje enviado con éxito!');
-        alert('Mensaje enviado con éxito! Nos pondremos en contacto contigo pronto.');
+        toast.success('Mensaje enviado con éxito! Nos pondremos en contacto contigo pronto.');
         setContactForm({ name: '', email: '', phone: '', message: `Interesado en propiedad ID: ${id}`, property_id: id });
       } else {
+        toast.error(data.detail || 'Error al enviar el mensaje.');
         throw new Error(data.detail || 'Error al enviar el mensaje.');
       }
     } catch (err) {
       console.error('Contact form error:', err);
       setFormError(err.message);
-      // toast.error(err.message);
+      toast.error(err.message);
     } finally {
       setFormSubmitting(false);
     }
@@ -166,7 +166,7 @@ export default function PropertyDetailPage() {
                   <input type="text" name="name" id="name" required value={contactForm.name} onChange={handleContactChange} className="w-full input-style" />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">Correo Electrónico</label>
                   <input type="email" name="email" id="email" required value={contactForm.email} onChange={handleContactChange} className="w-full input-style" />
                 </div>
                 <div>

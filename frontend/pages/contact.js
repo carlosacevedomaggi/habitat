@@ -2,8 +2,8 @@ import { useState } from 'react';
 import Head from 'next/head';
 import { useSettings } from '../context/SettingsContext';
 import MapDisplay from '../components/Map';
-// import { toast, ToastContainer } from 'react-toastify';
-// import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
@@ -19,7 +19,6 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,7 +29,6 @@ export default function ContactPage() {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
-    setSuccessMessage('');
 
     try {
       const res = await fetch(`${API_ROOT}/api/contact/`, {
@@ -40,17 +38,16 @@ export default function ContactPage() {
       });
       const data = await res.json();
       if (res.ok) {
-        // toast.success('Mensaje enviado con éxito! Gracias por contactarnos.');
-        alert('Mensaje enviado con éxito! Gracias por contactarnos.');
-        setSuccessMessage('Mensaje enviado con éxito! Gracias por contactarnos.');
+        toast.success('Mensaje enviado con éxito! Gracias por contactarnos.');
         setFormData({ name: '', email: '', phone: '', subject: 'Contacto General desde la Web', message: '' });
       } else {
+        toast.error(data.detail || 'Error al enviar el mensaje. Por favor, inténtelo de nuevo.');
         throw new Error(data.detail || 'Error al enviar el mensaje. Por favor, inténtelo de nuevo.');
       }
     } catch (err) {
       console.error('Contact form error:', err);
       setError(err.message);
-      // toast.error(err.message || 'Ocurrió un error inesperado.');
+      toast.error(err.message || 'Ocurrió un error inesperado.');
     } finally {
       setIsSubmitting(false);
     }
@@ -95,7 +92,6 @@ export default function ContactPage() {
             <div className="bg-gray-700 p-8 rounded-xl shadow-xl">
               <h2 className="text-2xl font-semibold text-accent mb-6">Envíanos un Mensaje</h2>
               {error && <p className="text-red-400 bg-red-900/50 p-3 rounded-md mb-4">{error}</p>}
-              {successMessage && <p className="text-green-400 bg-green-900/50 p-3 rounded-md mb-4">{successMessage}</p>}
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">Nombre Completo *</label>

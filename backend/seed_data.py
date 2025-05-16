@@ -233,6 +233,40 @@ SITE_SETTINGS = {
     "contact_address": {"value": "Av. Principal, Caracas", "category": "Contact"},
     "office_latitude": {"value": "10.491", "category": "Contact"},
     "office_longitude": {"value": "-66.879", "category": "Contact"},
+    "facebook_profile_url": {"value": {"text": "https://facebook.com/yourpage"}, "category": "Social"},
+    "instagram_profile_url": {"value": {"text": "https://instagram.com/yourprofile"}, "category": "Social"},
+    "tiktok_profile_url": {"value": {"text": "https://tiktok.com/@yourprofile"}, "category": "Social"},
+    "linkedin_profile_url": {"value": {"text": "https://linkedin.com/in/yourprofile"}, "category": "Social"},
+    "whatsapp_contact_url": {"value": {"text": "https://wa.me/1234567890"}, "category": "Social"},
+    "about_page_main_title": {"value": {"text": "Sobre Nosotros (Default Title)"}, "category": "AboutPage"},
+    "about_page_main_paragraph": {"value": {"text": "Comprometidos con encontrar tu espacio ideal. (Default paragraph from seed)"}, "category": "AboutPage"},
+    "about_page_mission_title": {"value": {"text": "Nuestra Misión (Default Title)"}, "category": "AboutPage"},
+    "about_page_mission_paragraph": {"value": {"text": "Facilitar a nuestros clientes el proceso de encontrar y adquirir la propiedad de sus sueños... (Default paragraph from seed)"}, "category": "AboutPage"},
+    "about_page_vision_title": {"value": {"text": "Nuestra Visión (Default Title)"}, "category": "AboutPage"},
+    "about_page_vision_paragraph": {"value": {"text": "Ser la agencia inmobiliaria líder y más respetada en Caracas y sus alrededores... (Default paragraph from seed)"}, "category": "AboutPage"},
+    "about_page_history_title": {"value": {"text": "Nuestra Historia"}, "category": "AboutPage"},
+    "about_page_history_paragraph": {"value": {"text": "Con más de una década de experiencia en el sector inmobiliario de Caracas, Habitat se ha consolidado como un referente de confianza y profesionalismo. Desde nuestros inicios, hemos trabajado con la visión de transformar la manera en que las personas encuentran y adquieren propiedades, enfocándonos en un servicio personalizado y resultados excepcionales."}, "category": "AboutPage"},
+    "footer_tagline": {"value": {"text": "Tu socio confiable en bienes raíces. (Default from seed)"}, "category": "Footer"},
+
+    # New Theme Color Settings
+    "theme_primary_color": {"value": "#282e4b", "category": "ThemeColors"},
+    "theme_secondary_color": {"value": "#242c3c", "category": "ThemeColors"},
+    "theme_accent_color": {"value": "#c8a773", "category": "ThemeColors"},
+    "theme_text_color_on_dark": {"value": "#FFFFFF", "category": "ThemeColors"},
+    "theme_background_primary": {"value": "#1A1A1A", "category": "ThemeColors"},
+    "theme_background_secondary": {"value": "#1f2937", "category": "ThemeColors"},
+    "theme_header_background_color": {"value": "#f3f4f6", "category": "ThemeColors"},
+    "theme_header_text_color": {"value": "#111827", "category": "ThemeColors"},
+    "theme_footer_background_color": {"value": "#f3f4f6", "category": "ThemeColors"},
+    "theme_footer_text_color": {"value": "#111827", "category": "ThemeColors"},
+    "theme_border_color": {"value": "#4b5563", "category": "ThemeColors"},
+    "theme_success_color": {"value": "#16a34a", "category": "ThemeColors"},
+    "theme_error_color": {"value": "#dc2626", "category": "ThemeColors"},
+    "theme_info_color": {"value": "#3b82f6", "category": "ThemeColors"},
+    "theme_warning_color": {"value": "#eab308", "category": "ThemeColors"},
+    "theme_text_color_primary_lightbg": {"value": "#111827", "category": "ThemeColors"},
+    "theme_text_color_secondary_lightbg": {"value": "#6b7280", "category": "ThemeColors"},
+    "home_background_url": {"value": "/images/default-hero-bg.jpg", "category": "Appearance"}
 }
 
 # ---------------------------------------------------------------------------
@@ -306,17 +340,45 @@ def seed_settings(db: Session):
     for key, data in SITE_SETTINGS.items():
         row = db.query(models.SiteSettings).filter(models.SiteSettings.key == key).first()
         desired_val = data["value"]
-        # Ensure value is a dict per schema
-        if not isinstance(desired_val, dict):
-            desired_val = {"text": desired_val}
+        
+        # Ensure value is a dict {text: "..."} if it's a simple string and key is not a color or URL
+        # For colors and specific URLs, store the string directly.
+        # For other text-based settings, wrap in {"text": "..."}
+        if isinstance(desired_val, str) and not key.endswith(('_color', '_url')):
+             desired_val = {"text": desired_val}
+        elif isinstance(desired_val, str) and key.endswith('_color'): # Store colors as direct strings
+            pass # Keep desired_val as string e.g. "#FFFFFF"
+        elif isinstance(desired_val, str) and key.endswith('_url'): # Store URLs as direct strings
+            pass # Keep desired_val as string e.g. "http://..."
 
         if row:
-            # If existing row has wrong type, fix it
-            if not isinstance(row.value, dict):
-                row.value = desired_val
+            # If existing row has wrong type for colors/URLs, or needs wrapping for text
+            if key.endswith(('_color', '_url')):
+                if isinstance(row.value, dict) and 'text' in row.value: # Convert from {"text":"#color"} to "#color"
+                    row.value = row.value['text']
+                elif not isinstance(row.value, str): # If it's some other dict, overwrite
+                     row.value = desired_val 
+            elif not isinstance(row.value, dict) or 'text' not in row.value : # Ensure text values are wrapped
+                 row.value = desired_val if isinstance(desired_val, dict) else {"text": str(desired_val)}
+            
+            # Always update category from seed if it differs, to allow moving settings between categories
+            if row.category != data["category"]:
                 row.category = data["category"]
+
+            # Only update value if it changed, to avoid unnecessary DB writes (optional)
+            # For simplicity here, we'll just set it. If complex diffing is needed, add it.
+            row.value = desired_val # Update value based on above logic
         else:
-            db.add(models.SiteSettings(key=key, value=desired_val, category=data["category"]))
+            # For new entries, ensure colors/URLs are direct strings, others are wrapped
+            final_value = desired_val
+            if isinstance(desired_val, str) and not key.endswith(('_color', '_url')):
+                final_value = {"text": desired_val}
+            elif isinstance(desired_val, dict) and 'text' in desired_val and key.endswith(('_color', '_url')):
+                # if seed data for color had {"text": "#value"}, extract "#value"
+                final_value = desired_val['text']
+
+
+            db.add(models.SiteSettings(key=key, value=final_value, category=data["category"]))
     db.commit()
     print("Basic site settings stored / updated.")
 

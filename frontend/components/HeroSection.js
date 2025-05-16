@@ -1,20 +1,18 @@
 import Link from 'next/link';
+// import Image from 'next/image'; // Image component no longer needed here
 
-export default function HeroSection({ backgroundUrl }) {
+export default function HeroSection({ /* backgroundUrl prop is no longer needed */ }) {
   return (
     <section
-      className="relative w-full min-h-screen flex items-center justify-center text-center"
-      style={{
-        backgroundImage: `url(${backgroundUrl})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
+      className="relative w-full min-h-screen flex items-center justify-center text-center overflow-hidden"
     >
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/40" />
+      {/* Background Image has been removed; this section will now show the global body background */}
+      
+      {/* Overlay - still useful for text contrast against the global background */}
+      <div className="absolute inset-0 bg-black/20 z-10" />
 
       {/* Content */}
-      <div className="relative z-10 max-w-3xl px-6 text-white">
+      <div className="relative z-20 max-w-3xl px-6 text-white">
         <h1 className="text-3xl md:text-5xl font-bold mb-4 drop-shadow-lg">
           Encuentra la propiedad de tus sueños
         </h1>
