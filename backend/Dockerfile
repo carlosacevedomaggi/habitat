@@ -24,16 +24,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the application code into a 'backend' package directory
 COPY . /app/backend
 
-# Switch into the backend code directory
-WORKDIR /app/backend
+# Keep working directory at /app so that 'backend' acts as a package
+# (remove switching into backend directory to allow module imports)
 
 # Make port 8000 available to the world outside this container (FastAPI default)
 EXPOSE 8000
 
-# Define command to run the app using Uvicorn
-# The command should be to run main:app from the `main.py` file in the /app directory
-# Example: CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-# If your main FastAPI app instance is in /app/main.py as `app`:
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"] 
+# Define command to run the app using Uvicorn as a module
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
 # Use --reload for development, remove for production
 # For production, you might also use more workers: --workers 4 
