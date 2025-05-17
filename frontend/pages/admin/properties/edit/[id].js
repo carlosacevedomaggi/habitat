@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 import dynamic from 'next/dynamic';
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_ROOT = '/api';
 
 const propertyTypes = ["Casa", "Apartamento", "Local Comercial", "Oficina", "Terreno", "Otro"];
 const listingTypes = ["Venta de propiedad", "Renta"];
@@ -61,9 +61,9 @@ export default function EditPropertyPage() {
 
     // Fetch current user, assignable users, and property details
     Promise.all([
-      fetch(`${API_ROOT}/api/users/me`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch current user')),
-      fetch(`${API_ROOT}/api/users/`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch assignable users')),
-      fetch(`${API_ROOT}/api/properties/${propertyId}`).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch property details'))
+      fetch(`${API_ROOT}/users/me`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch current user')),
+      fetch(`${API_ROOT}/users/`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch assignable users')),
+      fetch(`${API_ROOT}/properties/${propertyId}`).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch property details'))
     ])
     .then(([userData, usersList, propertyData]) => {
       setCurrentUser(userData);
@@ -168,7 +168,7 @@ export default function EditPropertyPage() {
     if (mainImageFile) {
       const imgFormData = new FormData(); imgFormData.append('file', mainImageFile);
       try {
-        const imgRes = await fetch(`${API_ROOT}/api/uploads/properties`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: imgFormData });
+        const imgRes = await fetch(`${API_ROOT}/uploads/properties`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: imgFormData });
         const imgData = await imgRes.json();
         if (!imgRes.ok) throw new Error(imgData.detail || 'Main image upload failed');
         newMainImageUrl = imgData.url;
@@ -180,7 +180,7 @@ export default function EditPropertyPage() {
       for (const file of additionalImageFiles) {
         const imgFormData = new FormData(); imgFormData.append('file', file);
         try {
-          const imgRes = await fetch(`${API_ROOT}/api/uploads/properties`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: imgFormData });
+          const imgRes = await fetch(`${API_ROOT}/uploads/properties`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: imgFormData });
           const imgData = await imgRes.json();
           if (!imgRes.ok) throw new Error(imgData.detail || `Failed to upload ${file.name}`);
           newAdditionalImageUrls.push(imgData.url);
@@ -204,7 +204,7 @@ export default function EditPropertyPage() {
     delete propertyDataToUpdate.images; // Don't send the full images array back
 
     try {
-      const res = await fetch(`${API_ROOT}/api/properties/${propertyId}`, {
+      const res = await fetch(`${API_ROOT}/properties/${propertyId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(propertyDataToUpdate),

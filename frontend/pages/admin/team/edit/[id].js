@@ -6,7 +6,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_ROOT = '/api';
 
 export default function EditTeamMemberPage() {
   const router = useRouter();
@@ -30,7 +30,7 @@ export default function EditTeamMemberPage() {
     const token = localStorage.getItem('habitat_admin_token');
     // GET /api/team/:id is public, but good to be consistent for admin context
 
-    fetch(`${API_ROOT}/api/team/${memberId}`, { 
+    fetch(`${API_ROOT}/team/${memberId}`, { 
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     })
       .then(res => {
@@ -90,7 +90,7 @@ export default function EditTeamMemberPage() {
       const imageFormData = new FormData();
       imageFormData.append('file', imageFile);
       try {
-        const imgRes = await fetch(`${API_ROOT}/api/uploads/team`, { // Ensure this is 'team'
+        const imgRes = await fetch(`${API_ROOT}/uploads/team`, { // Ensure this is 'team'
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
           body: imageFormData,
@@ -112,7 +112,7 @@ export default function EditTeamMemberPage() {
     };
 
     try {
-      const res = await fetch(`${API_ROOT}/api/team/${memberId}`, {
+      const res = await fetch(`${API_ROOT}/team/${memberId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

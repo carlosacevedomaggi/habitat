@@ -7,7 +7,7 @@ import MapDisplay from '../../components/Map';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_ROOT = '/api';
 
 export default function PropertyDetailPage() {
   const router = useRouter();
@@ -31,7 +31,7 @@ export default function PropertyDetailPage() {
     if (id) {
       setLoading(true);
       // Fetch property details
-      fetch(`${API_ROOT}/api/properties/${id}`)
+      fetch(`${API_ROOT}/properties/${id}`)
         .then(res => {
           if (!res.ok) {
             if (res.status === 404) throw new Error('Propiedad no encontrada.');
@@ -44,7 +44,7 @@ export default function PropertyDetailPage() {
           setContactForm(prev => ({ ...prev, property_id: data.id, message: `Hola, me interesa la propiedad "${data.title}" (ID: ${data.id}).` }));
           
           // After successfully loading property, track the click
-          fetch(`${API_ROOT}/api/properties/${data.id}/track-click`, { 
+          fetch(`${API_ROOT}/properties/${data.id}/track-click`, { 
             method: 'POST',
             headers: {
               'Content-Type': 'application/json' // Though body is empty, good practice
@@ -87,7 +87,7 @@ export default function PropertyDetailPage() {
     setFormSubmitting(true);
     setFormError('');
     try {
-      const res = await fetch(`${API_ROOT}/api/contact/`, {
+      const res = await fetch(`${API_ROOT}/contact/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(contactForm),

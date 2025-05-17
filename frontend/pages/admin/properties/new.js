@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { toast } from 'react-toastify';
 import dynamic from 'next/dynamic';
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_ROOT = '/api';
 
 const propertyTypes = ["Casa", "Apartamento", "Local Comercial", "Oficina", "Terreno", "Otro"];
 const listingTypes = ["Venta de propiedad", "Renta"];
@@ -51,8 +51,8 @@ export default function NewPropertyPage() {
     }
     // Fetch current user and assignable users
     Promise.all([
-      fetch(`${API_ROOT}/api/users/me`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch current user')),
-      fetch(`${API_ROOT}/api/users/`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch assignable users'))
+      fetch(`${API_ROOT}/users/me`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch current user')),
+      fetch(`${API_ROOT}/users/`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch assignable users'))
     ])
     .then(([userData, usersList]) => {
       setCurrentUser(userData);
@@ -156,7 +156,7 @@ export default function NewPropertyPage() {
       const imageFormData = new FormData();
       imageFormData.append('file', mainImageFile);
       try {
-        const imgRes = await fetch(`${API_ROOT}/api/uploads/properties`, {
+        const imgRes = await fetch(`${API_ROOT}/uploads/properties`, {
           method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: imageFormData,
         });
         const imgData = await imgRes.json();
@@ -174,7 +174,7 @@ export default function NewPropertyPage() {
         const imageFormData = new FormData();
         imageFormData.append('file', file);
         try {
-          const imgRes = await fetch(`${API_ROOT}/api/uploads/properties`, {
+          const imgRes = await fetch(`${API_ROOT}/uploads/properties`, {
             method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: imageFormData,
           });
           const imgData = await imgRes.json();
@@ -201,7 +201,7 @@ export default function NewPropertyPage() {
     };
 
     try {
-      const res = await fetch(`${API_ROOT}/api/properties/`, {
+      const res = await fetch(`${API_ROOT}/properties/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(propertyData),

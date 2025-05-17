@@ -5,7 +5,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_ROOT = '/api';
 
 export default function NewUserPage() {
   const router = useRouter();
@@ -47,7 +47,7 @@ export default function NewUserPage() {
     }
 
     try {
-      const res = await fetch(`${API_ROOT}/api/users/`, {
+      const res = await fetch(`${API_ROOT}/users/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

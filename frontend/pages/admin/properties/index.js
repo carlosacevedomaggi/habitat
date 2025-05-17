@@ -5,7 +5,7 @@ import AdminLayout from '../../../components/AdminLayout';
 import Head from 'next/head';
 import { toast } from 'react-toastify';
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_ROOT = '/api';
 
 export default function AdminPropertiesPage() {
   const [properties, setProperties] = useState([]);
@@ -28,7 +28,7 @@ export default function AdminPropertiesPage() {
     }
 
     try {
-      const userRes = await fetch(`${API_ROOT}/api/users/me`, {
+      const userRes = await fetch(`${API_ROOT}/users/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!userRes.ok) throw new Error('Failed to fetch current user details');
@@ -36,7 +36,7 @@ export default function AdminPropertiesPage() {
       setCurrentUser(userData);
 
       if (userData.role === 'admin' || userData.role === 'manager') {
-        const usersListRes = await fetch(`${API_ROOT}/api/users/`, {
+        const usersListRes = await fetch(`${API_ROOT}/users/`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!usersListRes.ok) throw new Error('Failed to fetch users for assignment');
@@ -72,7 +72,7 @@ export default function AdminPropertiesPage() {
       }
     }
     try {
-      const res = await fetch(`${API_ROOT}/api/properties/`, {
+      const res = await fetch(`${API_ROOT}/properties/`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) {
@@ -103,7 +103,7 @@ export default function AdminPropertiesPage() {
     }
 
     try {
-      const res = await fetch(`${API_ROOT}/api/properties/${propertyId}`, {
+      const res = await fetch(`${API_ROOT}/properties/${propertyId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ assigned_to_id: assignedToId === "" ? null : parseInt(assignedToId) })
@@ -136,7 +136,7 @@ export default function AdminPropertiesPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_ROOT}/api/properties/${propertyId}`, {
+      const res = await fetch(`${API_ROOT}/properties/${propertyId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

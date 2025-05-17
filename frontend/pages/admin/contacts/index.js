@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { useSettings } from '../../../context/SettingsContext';
 import { useRouter } from 'next/router';
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const API_ROOT = '/api';
 
 export default function ContactSubmissionsPage() {
   const [submissions, setSubmissions] = useState([]);
@@ -28,7 +28,7 @@ export default function ContactSubmissionsPage() {
 
     setLoading(true);
     // Fetch current user first
-    fetch(`${API_ROOT}/api/users/me`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`${API_ROOT}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {
         if (!res.ok) return Promise.reject('Failed to fetch current user details');
         return res.json();
@@ -39,7 +39,7 @@ export default function ContactSubmissionsPage() {
         // Decide whether to fetch all users based on role
         let fetchUsersListPromise;
         if (userData.role === 'admin' || userData.role === 'manager') {
-          fetchUsersListPromise = fetch(`${API_ROOT}/api/users/`, { headers: { Authorization: `Bearer ${token}` } })
+          fetchUsersListPromise = fetch(`${API_ROOT}/users/`, { headers: { Authorization: `Bearer ${token}` } })
                                     .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch users for assignment'));
         } else {
           fetchUsersListPromise = Promise.resolve([]); // Staff don't need to assign, resolve with empty array
@@ -74,7 +74,7 @@ export default function ContactSubmissionsPage() {
 
   const fetchSubmissions = (token, user) => { 
     setLoading(true);
-    fetch(`${API_ROOT}/api/contact/`, { // Backend already uses current_user from token for filtering
+    fetch(`${API_ROOT}/contact/`, { // Backend already uses current_user from token for filtering
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -96,7 +96,7 @@ export default function ContactSubmissionsPage() {
     }
 
     try {
-      const res = await fetch(`${API_ROOT}/api/contact/${submissionId}`,
+      const res = await fetch(`${API_ROOT}/contact/${submissionId}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -127,7 +127,7 @@ export default function ContactSubmissionsPage() {
     }
 
     try {
-      const res = await fetch(`${API_ROOT}/api/contact/${submissionId}/pdf`, {
+      const res = await fetch(`${API_ROOT}/contact/${submissionId}/pdf`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -236,7 +236,7 @@ export default function ContactSubmissionsPage() {
     const email = prompt('¿A qué correo deseas enviar este formulario? (Deja vacío para usar el correo por defecto)');
     if (email === null) return; // cancelled
     const token = localStorage.getItem('habitat_admin_token');
-    fetch(`${API_ROOT}/api/contact/${id}/send-email`, {
+    fetch(`${API_ROOT}/contact/${id}/send-email`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ recipient_email: email }),
@@ -254,7 +254,7 @@ export default function ContactSubmissionsPage() {
   function handleDelete(id) {
     if (!confirm('Delete this submission?')) return;
     const token = localStorage.getItem('habitat_admin_token');
-    fetch(`${API_ROOT}/api/contact/${id}`, {
+    fetch(`${API_ROOT}/contact/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     })

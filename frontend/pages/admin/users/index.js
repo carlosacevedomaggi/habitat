@@ -5,7 +5,7 @@ import AdminLayout from '../../../components/AdminLayout';
 import Head from 'next/head';
 import { toast } from 'react-toastify';
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_ROOT = '/api';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
@@ -35,7 +35,7 @@ export default function AdminUsersPage() {
       return;
     }
     try {
-      const res = await fetch(`${API_ROOT}/api/users/`, {
+      const res = await fetch(`${API_ROOT}/users/`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!res.ok) {
@@ -79,7 +79,7 @@ export default function AdminUsersPage() {
     setUsers(updatedUsers);
 
     try {
-      const res = await fetch(`${API_ROOT}/api/users/${userId}`, {
+      const res = await fetch(`${API_ROOT}/users/${userId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });

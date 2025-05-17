@@ -5,7 +5,7 @@ import MapDisplay from '../components/Map';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_ROOT = '/api';
 
 export default function ContactPage() {
   const { getSetting, settings, loading: settingsLoading } = useSettings();
@@ -31,7 +31,7 @@ export default function ContactPage() {
     setError('');
 
     try {
-      const res = await fetch(`${API_ROOT}/api/contact/`, {
+      const res = await fetch(`${API_ROOT}/contact/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

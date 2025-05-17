@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { toast } from 'react-toastify';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE = '/api';
 
 // Helper to generate a display label from a setting key
 const formatKeyToLabel = (key) => {
