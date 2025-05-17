@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile
 import shutil
 import os
 import uuid # For generating unique filenames
+import logging
 
 from ..auth import utils as auth_utils
 from ..core.config import settings
@@ -20,6 +21,8 @@ TEAM_UPLOAD_DIR = os.path.join(settings.UPLOAD_DIR, "team")
 
 os.makedirs(PROPERTY_UPLOAD_DIR, exist_ok=True)
 os.makedirs(TEAM_UPLOAD_DIR, exist_ok=True)
+
+logger = logging.getLogger("uvicorn.error")
 
 @router.post("/{upload_type}", response_model=schemas.UploadResponse)
 async def upload_file(
@@ -65,8 +68,7 @@ async def upload_file(
     except HTTPException: # Re-raise HTTPExceptions directly
         raise
     except Exception as e:
-        # Log the exception for debugging
-        print(f"File upload failed: {e}")
+        logger.exception("File upload failed")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not upload file: An unexpected error occurred.")
     finally:
         # Ensure the file is closed, swallow any errors during close
