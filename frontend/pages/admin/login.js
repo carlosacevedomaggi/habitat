@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
     formData.append('password', password);
 
     try {
-      const res = await fetch(`${API_ROOT}/api/users/token`, { // Ensure this path is correct
+      const res = await fetch(`${API_ROOT}/users/token`, { // Ensure this path is correct
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

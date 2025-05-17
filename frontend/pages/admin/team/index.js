@@ -18,7 +18,7 @@ export default function AdminTeamPage() {
     setLoading(true); setError('');
     // GET /api/team is public, but admin actions will require token passed in headers
     try {
-      const res = await fetch(`${API_ROOT}/api/team/`);
+      const res = await fetch(`${API_ROOT}/team/`);
       if (!res.ok) throw new Error(`Failed to fetch team members: ${res.statusText}`);
       const data = await res.json();
       setTeamMembers(data.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity)));
@@ -47,7 +47,7 @@ export default function AdminTeamPage() {
     // Consider adding a per-item loading state if many items can be deleted quickly.
 
     try {
-      const res = await fetch(`${API_ROOT}/api/team/${memberId}`, {
+      const res = await fetch(`${API_ROOT}/team/${memberId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
