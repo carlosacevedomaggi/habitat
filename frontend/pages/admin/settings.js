@@ -117,7 +117,7 @@ export default function AdminSettingsPage() {
       setIsSaving(false);
     }
   };
-
+  
   if (contextLoading) {
     return <AdminLayout title="Site Settings"><div className="text-center py-10">Loading settings...</div></AdminLayout>;
   }
@@ -144,7 +144,7 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-8">
           {error && <div className="bg-red-500 text-white p-3 rounded-md text-center">{error}</div>}
 
           {/* Render settings based on activeCategory */}
@@ -193,10 +193,10 @@ export default function AdminSettingsPage() {
               // Fallback for complex objects or unhandled - could be JSON editor or specific inputs
               // For this example, we'll render a stringified version if it's an object not handled above
               if (typeof setting.value === 'object' && setting.value !== null) {
-                 return (
+                    return (
                   <div key={key} className="bg-gray-700 p-4 rounded-lg">
                     <label htmlFor={key} className="block text-sm font-medium text-gray-300 mb-1">{label} (JSON)</label>
-                    <textarea
+                          <textarea 
                       id={key}
                       name={key}
                       value={JSON.stringify(setting.value, null, 2)}
@@ -208,12 +208,12 @@ export default function AdminSettingsPage() {
                           console.warn("Invalid JSON for", key);
                         }
                       }}
-                      rows="3"
+                            rows="3"
                       className="input-style font-mono text-xs"
                     />
                     <p className="text-xs text-gray-500 mt-1">Key: {key} | Category: {setting.category}</p>
-                  </div>
-                );
+                      </div>
+                    );
               }
               return null; // Should not happen if data is well-formed
           })}
@@ -227,7 +227,7 @@ export default function AdminSettingsPage() {
               </button>
             </div>
           )}
-        </form>
+          </form>
       </div>
       <style jsx>{`
         .input-style { 

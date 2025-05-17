@@ -53,9 +53,9 @@ export default function ContactSubmissionsPage() {
             if ((userData.role === 'staff' || userData.role === 'manager') && !getSetting('non_admin_can_view_all_contacts')) {
               toast.error("Access Denied: You do not have permission to view contact submissions.");
               router.push('/admin/dashboard');
-              setLoading(false);
-              return;
-            }
+      setLoading(false);
+      return;
+    }
             fetchSubmissions(token, userData); 
           }
         });
