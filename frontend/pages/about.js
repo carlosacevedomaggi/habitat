@@ -14,7 +14,7 @@ export default function AboutPage() {
     const fetchTeamMembers = async () => {
       setTeamLoading(true);
       try {
-        const res = await fetch(`${API_ROOT}/api/team/`);
+        const res = await fetch(`${API_ROOT}/team/`);
         if (!res.ok) throw new Error('Failed to fetch team members');
         const data = await res.json();
         setTeamMembers(data.sort((a,b) => (a.order ?? Infinity) - (b.order ?? Infinity)));

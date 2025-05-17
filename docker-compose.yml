@@ -1,6 +1,9 @@
 version: '3.8'
 services:
   backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     image: "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/habitat-backend:latest"
     env_file:
       - ./.env
@@ -11,6 +14,9 @@ services:
       - db
 
   frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     image: "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/habitat-frontend:latest"
     env_file:
       - ./.env
