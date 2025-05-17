@@ -36,7 +36,7 @@ services:
   db:
     image: postgres:15-alpine
     env_file:
-      - backend/.env  # should include POSTGRES_* variables
+      - ./.env
     volumes:
       - db_data:/var/lib/postgresql/data
     restart: always
