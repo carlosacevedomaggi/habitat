@@ -60,9 +60,9 @@ async def upload_file(
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         
-        # Construct URL to access the file via static route (relative)
-        # e.g., /static/uploads/properties/filename.jpg
-        file_url = f"/static/uploads/{upload_type}/{unique_filename}"
+        # Construct absolute URL to access the file via static route
+        # e.g., http://your-api-domain/static/uploads/properties/filename.jpg
+        file_url = f"{settings.API_BASE_URL}/static/uploads/{upload_type}/{unique_filename}"
         
         return schemas.UploadResponse(filename=unique_filename, url=file_url)
     except HTTPException: # Re-raise HTTPExceptions directly
