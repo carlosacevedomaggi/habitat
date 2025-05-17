@@ -79,6 +79,18 @@ export default function AppearancePage() {
         const data = await res.json();
         setAllSettings(data); // Store all settings
 
+        // Normalize background URL to a relative path
+        const rawBg = data?.home_background_url?.value || '';
+        let bgPath = rawBg;
+        try {
+          if (rawBg.startsWith('http')) {
+            bgPath = new URL(rawBg).pathname;
+          }
+        } catch {
+          /* ignore malformed URL */
+        }
+        setHomeBgUrl(bgPath);
+        
         const structuredColors = {};
         colorSections.forEach(section => {
           section.keys.forEach(key => {
@@ -96,9 +108,6 @@ export default function AppearancePage() {
           });
         });
         setThemeColorSettings(structuredColors);
-
-        // Populate homeBgUrl
-        setHomeBgUrl(data?.home_background_url?.value || ''); // Assuming home_background_url stores direct string URL
 
       } catch (err) {
         console.error(err);
@@ -290,7 +299,7 @@ export default function AppearancePage() {
           <div className="mb-6">
             <h3 className="font-medium mb-2 text-gray-300">Fondo Actual:</h3>
             {homeBgUrl ? (
-              <Image src={homeBgUrl} alt="Current Hero Background" width={600} height={300} className="object-cover rounded-md shadow" />
+              <Image src={homeBgUrl} unoptimized alt="Current Hero Background" width={600} height={300} className="object-cover rounded-md shadow" />
             ) : (
               <p className="text-gray-400">No hay imagen de fondo configurada. Se usará el color de fondo primario.</p>
             )}
