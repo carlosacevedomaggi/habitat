@@ -3,7 +3,7 @@ services:
   backend:
     image: "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/habitat-backend:latest"
     env_file:
-      - backend/.env
+      - ./.env
     restart: always
     ports:
       - "8000:8000"
@@ -13,7 +13,7 @@ services:
   frontend:
     image: "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/habitat-frontend:latest"
     env_file:
-      - frontend/.env.local
+      - ./.env
     restart: always
     ports:
       - "3000:3000"
