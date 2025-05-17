@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useRouter } from 'next/router';
-import Image from 'next/image';
+// import Image from 'next/image';
 import { toast } from 'react-toastify';
 
 const API_BASE = '/api';
@@ -299,7 +299,7 @@ export default function AppearancePage() {
           <div className="mb-6">
             <h3 className="font-medium mb-2 text-gray-300">Fondo Actual:</h3>
             {homeBgUrl ? (
-              <Image src={homeBgUrl} unoptimized alt="Current Hero Background" width={600} height={300} className="object-cover rounded-md shadow" />
+              <img src={homeBgUrl} alt="Current Hero Background" className="object-cover rounded-md shadow" />
             ) : (
               <p className="text-gray-400">No hay imagen de fondo configurada. Se usará el color de fondo primario.</p>
             )}
