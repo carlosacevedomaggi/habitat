@@ -200,7 +200,7 @@ export default function EditPropertyPage() {
       area: formData.area !== '' ? parseFloat(formData.area) : null,
       latitude: formData.latitude !== '' ? parseFloat(formData.latitude) : null,
       longitude: formData.longitude !== '' ? parseFloat(formData.longitude) : null,
-      image_url: newMainImageUrl, // Updated main image URL
+      image_url: newMainImageUrl === '' ? null : newMainImageUrl, // Convert '' to null
       additional_image_urls: newAdditionalImageUrls.length > 0 ? newAdditionalImageUrls : null,
       delete_image_ids: imagesToDelete.length > 0 ? imagesToDelete : null,
       assigned_to_id: formData.assigned_to_id ? parseInt(formData.assigned_to_id) : null,

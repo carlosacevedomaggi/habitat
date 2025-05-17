@@ -108,7 +108,7 @@ export default function EditTeamMemberPage() {
     const memberDataToUpdate = {
       ...formData,
       order: parseInt(formData.order) || 0,
-      image_url: uploadedImageUrl, 
+      image_url: uploadedImageUrl === '' ? null : uploadedImageUrl, 
     };
 
     try {

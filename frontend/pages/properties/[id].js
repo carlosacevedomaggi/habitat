@@ -115,17 +115,48 @@ export default function PropertyDetailPage() {
 
   // Prepare images for carousel: main image first, then additional images
   const carouselImages = [];
+  const defaultImage = '/images/default-property-bg.jpg'; // Define a default
+
+  let mainDisplayUrl = defaultImage;
   if (property.image_url) {
-    carouselImages.push({ image_url: `${property.image_url.startsWith('http') ? '' : API_ROOT}${property.image_url}`, alt: property.title });
+    if (property.image_url.startsWith('http') || property.image_url.startsWith('/')) {
+      mainDisplayUrl = property.image_url;
+    } else {
+      // If it's not absolute and not root-relative, it might be a malformed URL
+      // or an old format. For safety, prepend API_ROOT if it seems like a relative API path.
+      // However, current uploads provide absolute or /static/ paths.
+      // This case is unlikely for new data.
+      mainDisplayUrl = `${API_ROOT}/${property.image_url}`; // Fallback, review if this occurs
+    }
   }
+  
+  carouselImages.push({ image_url: mainDisplayUrl, alt: property.title });
+
   if (property.images && property.images.length > 0) {
     property.images.forEach(img => {
-      carouselImages.push({ image_url: `${img.image_url.startsWith('http') ? '' : API_ROOT}${img.image_url}`, alt: `${property.title} - Imagen adicional ${img.order + 1}` });
+      let additionalImgUrl = defaultImage;
+      if (img.image_url) {
+        if (img.image_url.startsWith('http') || img.image_url.startsWith('/')) {
+          additionalImgUrl = img.image_url;
+        } else {
+          // Similar to mainDisplayUrl, this case should be rare.
+          additionalImgUrl = `${API_ROOT}/${img.image_url}`; // Fallback
+        }
+      }
+      // Add only if different from mainDisplayUrl to avoid duplicates if main is also in images list by chance
+      if (additionalImgUrl !== mainDisplayUrl) {
+        carouselImages.push({ image_url: additionalImgUrl, alt: `${property.title} - Imagen adicional ${img.order + 1}` });
+      }
     });
   }
-  // If no main image but additional images exist, use the first additional as main for carousel consistency
-  if (carouselImages.length === 0 && property.images && property.images.length > 0) {
-     carouselImages.push({ image_url: `${property.images[0].image_url.startsWith('http') ? '' : API_ROOT}${property.images[0].image_url}`, alt: property.title });
+  // If carousel is still empty (e.g. main was default, no additional images), ensure at least the default is there.
+  if (carouselImages.length === 0 && mainDisplayUrl === defaultImage) {
+    // This case should be covered by the initial push of mainDisplayUrl
+  } else if (carouselImages.length === 0 && mainDisplayUrl !== defaultImage) {
+    // This means mainDisplayUrl was valid but different from default, and no additional images.
+    // Already pushed, so this is fine.
+  } else if (carouselImages.length === 0) { // Catch all if somehow empty
+    carouselImages.push({ image_url: defaultImage, alt: 'Imagen no disponible' });
   }
 
   return (
