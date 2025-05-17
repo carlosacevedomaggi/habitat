@@ -65,8 +65,12 @@ async def upload_file(
     except HTTPException: # Re-raise HTTPExceptions directly
         raise
     except Exception as e:
-        # Log the exception e here in a real application
-        # logger.error(f"File upload failed: {e}", exc_info=True)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Could not upload file: An unexpected error occurred.")
+        # Log the exception for debugging
+        print(f"File upload failed: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not upload file: An unexpected error occurred.")
     finally:
-        await file.close() # Ensure the file is closed (use await for UploadFile.close) 
+        # Ensure the file is closed, swallow any errors during close
+        try:
+            await file.close()
+        except Exception:
+            pass 

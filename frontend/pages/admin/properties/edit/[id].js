@@ -61,9 +61,13 @@ export default function EditPropertyPage() {
 
     // Fetch current user, assignable users, and property details
     Promise.all([
-      fetch(`${API_ROOT}/users/me`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch current user')),
-      fetch(`${API_ROOT}/users/`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch assignable users')),
-      fetch(`${API_ROOT}/properties/${propertyId}`).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch property details'))
+      fetch(`${API_ROOT}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch current user')),
+      fetch(`${API_ROOT}/users/`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(res => res.ok ? res.json() : [])
+        .catch(() => []),
+      fetch(`${API_ROOT}/properties/${propertyId}`)
+        .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch property details'))
     ])
     .then(([userData, usersList, propertyData]) => {
       setCurrentUser(userData);
