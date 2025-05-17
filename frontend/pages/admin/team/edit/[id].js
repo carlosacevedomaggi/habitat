@@ -174,7 +174,7 @@ export default function EditTeamMemberPage() {
             {imagePreview && (
               <div className="mt-2">
                 <p className="text-xs text-gray-500 mb-1">Current/Preview:</p>
-                <img src={imageFile ? imagePreview : (imagePreview.startsWith('blob:') || imagePreview.startsWith('http') ? imagePreview : API_ROOT + imagePreview) } alt="Team member photo" className="h-32 w-auto rounded object-cover" />
+                <img src={imagePreview} alt="Team member photo" className="h-32 w-auto rounded object-cover" />
               </div>
             )}
           </div>

@@ -57,12 +57,9 @@ async def upload_file(
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
         
-        # Construct URL to access the file
-        # Assumes backend/static/ is mounted as /static/
-        # settings.UPLOAD_DIR should be 'backend/static/uploads'
-        # settings.API_BASE_URL should be 'http://localhost:8000' (or actual deployed URL)
-        # Resulting URL: http://localhost:8000/static/uploads/properties/filename.jpg
-        file_url = f"{settings.API_BASE_URL}/static/uploads/{upload_type}/{unique_filename}"
+        # Construct URL to access the file via static route (relative)
+        # e.g., /static/uploads/properties/filename.jpg
+        file_url = f"/static/uploads/{upload_type}/{unique_filename}"
         
         return schemas.UploadResponse(filename=unique_filename, url=file_url)
     except HTTPException: # Re-raise HTTPExceptions directly

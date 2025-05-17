@@ -116,7 +116,7 @@ export default function AdminTeamPage() {
               <div className="flex items-center space-x-4">
                 {/* Drag handle icon - conditionally render if using dnd */}
                 {/* <span {...(providedDrag ? providedDrag.dragHandleProps : {})}><i className="fas fa-grip-vertical text-gray-500 hover:text-accent cursor-grab mr-2"></i></span> */}
-                {member.image_url && <img src={(member.image_url.startsWith('http') ? '' : API_ROOT) + member.image_url} alt={member.name} className="w-16 h-16 rounded-full object-cover"/>}
+                {member.image_url && <img src={member.image_url} alt={member.name} className="w-16 h-16 rounded-full object-cover"/>}
                 {!member.image_url && <div className="w-16 h-16 rounded-full bg-gray-600 flex items-center justify-center text-accent"><i className="fas fa-user fa-2x"></i></div>}
                 <div>
                   <h3 className="text-lg font-semibold text-white">{member.name}</h3>
