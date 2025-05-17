@@ -23,6 +23,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Ensure ECR repositories exist
+        run: |
+          aws ecr describe-repositories --repository-names habitat-backend || \
+            aws ecr create-repository --repository-name habitat-backend
+          aws ecr describe-repositories --repository-names habitat-frontend || \
+            aws ecr create-repository --repository-name habitat-frontend
+
       - name: Login to Amazon ECR
         run: |
           aws ecr get-login-password --region $AWS_REGION \
