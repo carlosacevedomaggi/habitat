@@ -178,7 +178,7 @@ class Contact(ContactBase):
 
 class UploadResponse(BaseModel):
     filename: str
-    url: HttpUrl 
+    url: str  # Accept relative paths, not only absolute URLs
 
 # Schemas for Property Click Tracking
 class PropertyClickBase(BaseModel):
