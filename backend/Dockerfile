@@ -21,10 +21,11 @@ COPY ./requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application code into the container at /app
-# This assumes Dockerfile is in the backend directory, and we copy its contents
-COPY . /app 
-# If Dockerfile is at project root, adjust path: COPY ./backend /app
+# Copy the application code into a 'backend' package directory
+COPY . /app/backend
+
+# Switch into the backend code directory
+WORKDIR /app/backend
 
 # Make port 8000 available to the world outside this container (FastAPI default)
 EXPOSE 8000
