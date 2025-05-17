@@ -96,25 +96,25 @@ export default function AdminLayout({ children, title = 'Admin Panel' }) {
       <div className="min-h-screen flex flex-col bg-gray-900 text-white">
         <header className="bg-gray-800 shadow-md">
           <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-            <Link href="/admin/dashboard" className="text-xl font-bold text-accent hover:text-opacity-80">
+            <Link href="/admin/dashboard" prefetch={false} className="text-xl font-bold text-accent hover:text-opacity-80">
                 Habitat Admin
             </Link>
             {adminUser && <span className="text-sm text-gray-400">Bienvenido, {adminUser.username} ({adminUser.role})</span>}
             <nav className="space-x-4 flex items-center">
-              <Link href="/admin/dashboard" className="hover:text-accent">Dashboard</Link>
+              <Link href="/admin/dashboard" prefetch={false} className="hover:text-accent">Dashboard</Link>
               {(adminUser?.role === 'admin' || adminUser?.role === 'manager' || adminUser?.role === 'staff') && (
-                <Link href="/admin/properties" className="hover:text-accent">Propiedades</Link>
+                <Link href="/admin/properties" prefetch={false} className="hover:text-accent">Propiedades</Link>
               )}
               {(adminUser?.role === 'admin' || 
                ((adminUser?.role === 'manager' || adminUser?.role === 'staff') && getSetting('non_admin_can_view_all_contacts'))) && (
-                <Link href="/admin/contacts" className="hover:text-accent">Contactos</Link>
+                <Link href="/admin/contacts" prefetch={false} className="hover:text-accent">Contactos</Link>
               )}
               {adminUser?.role === 'admin' && (
                 <>
-                  <Link href="/admin/users" className="hover:text-accent">Usuarios</Link>
-                  <Link href="/admin/team" className="hover:text-accent">Equipo</Link>
-                  <Link href="/admin/settings" className="hover:text-accent">Ajustes</Link>
-                  <Link href="/admin/appearance" className="hover:text-accent">Apariencia</Link>
+                  <Link href="/admin/users" prefetch={false} className="hover:text-accent">Usuarios</Link>
+                  <Link href="/admin/team" prefetch={false} className="hover:text-accent">Equipo</Link>
+                  <Link href="/admin/settings" prefetch={false} className="hover:text-accent">Ajustes</Link>
+                  <Link href="/admin/appearance" prefetch={false} className="hover:text-accent">Apariencia</Link>
                 </>
               )}
               <button 

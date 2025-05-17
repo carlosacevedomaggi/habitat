@@ -65,6 +65,7 @@ export default function AdminDashboardPage() {
           {(userRole === 'admin' || userRole === 'manager' || userRole === 'staff') && (
             <Link
               href="/admin/properties"
+              prefetch={false}
               className="bg-gray-700 p-6 rounded-lg hover:shadow-accent/20 shadow-md transition-shadow block"
             >
               <h2 className="text-xl font-semibold text-accent mb-2">Manage Properties</h2>
@@ -74,6 +75,7 @@ export default function AdminDashboardPage() {
           {userRole === 'admin' && (
             <Link
               href="/admin/users"
+              prefetch={false}
               className="bg-gray-700 p-6 rounded-lg hover:shadow-accent/20 shadow-md transition-shadow block"
             >
               <h2 className="text-xl font-semibold text-accent mb-2">Manage Users</h2>
@@ -83,6 +85,7 @@ export default function AdminDashboardPage() {
           {userRole === 'admin' && (
             <Link
               href="/admin/team"
+              prefetch={false}
               className="bg-gray-700 p-6 rounded-lg hover:shadow-accent/20 shadow-md transition-shadow block"
             >
               <h2 className="text-xl font-semibold text-accent mb-2">Team Members</h2>
@@ -92,6 +95,7 @@ export default function AdminDashboardPage() {
           {userRole === 'admin' && (
             <Link
               href="/admin/settings"
+              prefetch={false}
               className="bg-gray-700 p-6 rounded-lg hover:shadow-accent/20 shadow-md transition-shadow block"
             >
               <h2 className="text-xl font-semibold text-accent mb-2">Site Settings</h2>
@@ -101,6 +105,7 @@ export default function AdminDashboardPage() {
           {userRole === 'admin' && (
             <Link
               href="/admin/appearance"
+              prefetch={false}
               className="bg-gray-700 p-6 rounded-lg hover:shadow-accent/20 shadow-md transition-shadow block"
             >
               <h2 className="text-xl font-semibold text-accent mb-2">Appearance</h2>
@@ -110,6 +115,7 @@ export default function AdminDashboardPage() {
           {(userRole === 'admin' || userRole === 'manager' || userRole === 'staff') && (
             <Link
               href="/admin/contacts"
+              prefetch={false}
               className="bg-gray-700 p-6 rounded-lg hover:shadow-accent/20 shadow-md transition-shadow block"
             >
               <h2 className="text-xl font-semibold text-accent mb-2">Contact Submissions</h2>
