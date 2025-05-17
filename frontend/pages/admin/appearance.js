@@ -234,6 +234,11 @@ export default function AppearancePage() {
       setBgFile(null); // Clear file input
       setAllSettings(settingsToUpdate); // Keep allSettings in sync
       toast.success('Background image updated successfully!');
+      // Apply new background image to the body
+      document.body.style.backgroundImage = `url(${uploadedImageUrl})`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center center';
+      document.body.style.backgroundAttachment = 'fixed';
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -271,6 +276,8 @@ export default function AppearancePage() {
       setHomeBgUrl("");
       setAllSettings(settingsToUpdate); // Keep allSettings in sync
       toast.success('Background image removed.');
+      // Remove background image from the body
+      document.body.style.backgroundImage = 'none';
     } catch (err) {
         console.error(err);
         setError(err.message);
