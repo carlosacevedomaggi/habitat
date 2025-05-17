@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { useSettings } from '../context/SettingsContext'; // Import useSettings
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_ROOT = '/api';
 
 export default function AdminLayout({ children, title = 'Admin Panel' }) {
   const router = useRouter();

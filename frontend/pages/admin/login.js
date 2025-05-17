@@ -4,7 +4,7 @@ import Link from 'next/link'; // Optional: for a link back to home or other page
 import Head from 'next/head';
 
 // Use the same API_BASE as in SettingsContext, or define it consistently
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"; // Adjusted to root
+const API_ROOT = '/api';
 
 export default function AdminLoginPage() {
   const [username, setUsername] = useState('');

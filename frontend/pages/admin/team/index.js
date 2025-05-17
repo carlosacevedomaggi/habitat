@@ -6,7 +6,7 @@ import Head from 'next/head';
 import { toast } from 'react-toastify';
 // import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'; // Install this
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_ROOT = '/api';
 
 export default function AdminTeamPage() {
   const [teamMembers, setTeamMembers] = useState([]);

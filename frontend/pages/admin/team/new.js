@@ -5,7 +5,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_ROOT = '/api';
 
 export default function NewTeamMemberPage() {
   const router = useRouter();
@@ -55,7 +55,7 @@ export default function NewTeamMemberPage() {
       const imageFormData = new FormData();
       imageFormData.append('file', imageFile);
       try {
-        const imgRes = await fetch(`${API_ROOT}/api/uploads/team`, { // Use 'team' upload_type
+        const imgRes = await fetch(`${API_ROOT}/uploads/team`, { // Use 'team' upload_type
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
           body: imageFormData,
@@ -77,7 +77,7 @@ export default function NewTeamMemberPage() {
     };
 
     try {
-      const res = await fetch(`${API_ROOT}/api/team/`, {
+      const res = await fetch(`${API_ROOT}/team/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

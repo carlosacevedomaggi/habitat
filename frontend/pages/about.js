@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useSettings } from '../context/SettingsContext';
 
-const API_ROOT = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_ROOT = '/api';
 
 export default function AboutPage() {
   const { getSetting, loading: settingsLoading } = useSettings();
