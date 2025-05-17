@@ -52,7 +52,7 @@ def create_user_route(user_in: schemas.UserCreate, db: Session = Depends(get_db)
 
 
 @router.get("/", response_model=List[schemas.User])
-def list_users_route(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_admin: models.User = Depends(auth_utils.require_admin)):
+def list_users_route(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(auth_utils.require_manager)):
     users = crud_user.get_users(db, skip=skip, limit=limit)
     return users
 
