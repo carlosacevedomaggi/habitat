@@ -36,6 +36,11 @@ app.add_middleware(
 def read_root():
     return {"message": "Welcome to the Habitat API"}
 
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 # Include routers from the routers directory
 from .routers import properties, users, team, settings as settings_router, contact, uploads
 
