@@ -72,7 +72,7 @@ export default function AdminPropertiesPage() {
       }
     }
     try {
-      const res = await fetch(`${API_ROOT}/properties/`, {
+      const res = await fetch(`${API_ROOT}/properties/?limit=1000`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!res.ok) {
