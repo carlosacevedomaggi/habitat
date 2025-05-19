@@ -27,7 +27,7 @@ export default function EditPropertyPage() {
     listing_type: listingTypes[0],
     bedrooms: '',
     bathrooms: '',
-    area: '',
+    square_feet: '',
     latitude: '10.4806',
     longitude: '-66.9036',
     is_featured: false,
@@ -82,7 +82,7 @@ export default function EditPropertyPage() {
         listing_type: propertyData.listing_type || listingTypes[0],
         bedrooms: propertyData.bedrooms || '',
         bathrooms: propertyData.bathrooms || '',
-        area: propertyData.area || '',
+        square_feet: propertyData.square_feet || '',
         latitude: propertyData.latitude?.toString() || '10.4806',
         longitude: propertyData.longitude?.toString() || '-66.9036',
         is_featured: propertyData.is_featured || false,
@@ -197,7 +197,7 @@ export default function EditPropertyPage() {
       price: parseFloat(formData.price) || 0,
       bedrooms: formData.bedrooms !== '' ? parseInt(formData.bedrooms) : null,
       bathrooms: formData.bathrooms !== '' ? parseInt(formData.bathrooms) : null,
-      area: formData.area !== '' ? parseFloat(formData.area) : null,
+      square_feet: formData.square_feet !== '' ? parseFloat(formData.square_feet) : null,
       latitude: formData.latitude !== '' ? parseFloat(formData.latitude) : null,
       longitude: formData.longitude !== '' ? parseFloat(formData.longitude) : null,
       image_url: newMainImageUrl === '' ? null : newMainImageUrl, // Convert '' to null
@@ -259,7 +259,7 @@ export default function EditPropertyPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div><label htmlFor="bedrooms" className="block text-sm font-medium text-gray-300 mb-1">Bedrooms</label><input type="number" name="bedrooms" id="bedrooms" value={formData.bedrooms} onChange={handleChange} min="0" className="w-full input-style" /></div>
             <div><label htmlFor="bathrooms" className="block text-sm font-medium text-gray-300 mb-1">Bathrooms</label><input type="number" name="bathrooms" id="bathrooms" value={formData.bathrooms} onChange={handleChange} min="0" className="w-full input-style" /></div>
-            <div><label htmlFor="area" className="block text-sm font-medium text-gray-300 mb-1">Area (sqft)</label><input type="number" name="area" id="area" value={formData.area} onChange={handleChange} step="0.01" min="0" className="w-full input-style" /></div>
+            <div><label htmlFor="square_feet" className="block text-sm font-medium text-gray-300 mb-1">Area (sqft)</label><input type="number" name="square_feet" id="square_feet" value={formData.square_feet} onChange={handleChange} step="0.01" min="0" className="w-full input-style" /></div>
           </div>
           <div className="col-span-1 md:col-span-2"><label className="block text-sm font-medium text-gray-300 mb-2">Set Location on Map</label><div id="leaflet-map" style={{ height: '300px' }} className="rounded-md border border-gray-600 mb-2"></div><p className="text-xs text-gray-500 mt-1">Click on the map to update coordinates.</p></div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

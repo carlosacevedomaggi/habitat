@@ -49,9 +49,9 @@ class CRUDProperty:
         if max_bathrooms is not None:
             query = query.filter(models.Property.bathrooms <= max_bathrooms)
         if min_area is not None:
-            query = query.filter(models.Property.area >= min_area)
+            query = query.filter(models.Property.square_feet >= min_area)
         if max_area is not None:
-            query = query.filter(models.Property.area <= max_area)
+            query = query.filter(models.Property.square_feet <= max_area)
 
         return query.offset(skip).limit(limit).all()
 

@@ -25,7 +25,7 @@ export default function NewPropertyPage() {
     listing_type: listingTypes[0],
     bedrooms: '',
     bathrooms: '',
-    area: '',
+    square_feet: '',
     latitude: '10.4806',
     longitude: '-66.9036',
     is_featured: false,
@@ -192,7 +192,7 @@ export default function NewPropertyPage() {
       price: parseFloat(formData.price) || 0,
       bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
       bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
-      area: formData.area ? parseFloat(formData.area) : null,
+      square_feet: formData.square_feet ? parseFloat(formData.square_feet) : null,
       latitude: formData.latitude ? parseFloat(formData.latitude) : null,
       longitude: formData.longitude ? parseFloat(formData.longitude) : null,
       image_url: mainImageUrl || null,
@@ -280,8 +280,8 @@ export default function NewPropertyPage() {
               <input type="number" name="bathrooms" id="bathrooms" value={formData.bathrooms} onChange={handleChange} min="0" className="w-full bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm p-2.5 focus:ring-accent focus:border-accent" />
             </div>
             <div>
-              <label htmlFor="area" className="block text-sm font-medium text-gray-300 mb-1">Area (sqft)</label>
-              <input type="number" name="area" id="area" value={formData.area} onChange={handleChange} step="0.01" min="0" className="w-full bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm p-2.5 focus:ring-accent focus:border-accent" />
+              <label htmlFor="square_feet" className="block text-sm font-medium text-gray-300 mb-1">Area (sqft)</label>
+              <input type="number" name="square_feet" id="square_feet" value={formData.square_feet} onChange={handleChange} step="0.01" min="0" className="w-full bg-gray-700 border border-gray-600 text-white rounded-md shadow-sm p-2.5 focus:ring-accent focus:border-accent" />
             </div>
           </div>
           
