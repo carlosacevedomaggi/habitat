@@ -52,6 +52,7 @@ class Property(Base):
     bathrooms = Column(Integer)
     square_feet = Column(Integer)
     property_type = Column(String)  # e.g., 'House', 'Apartment', 'Condo'
+    listing_type = Column(String, nullable=True)
     status = Column(String, default="available")  # e.g., 'available', 'sold', 'pending'
     image_url = Column(String, nullable=True) 
     latitude = Column(Float, nullable=True)
