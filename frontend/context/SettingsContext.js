@@ -78,36 +78,36 @@ export const SettingsProvider = ({ children }) => {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/settings`);
-        if (!res.ok) {
-          console.error("Failed to fetch settings, using defaults.");
-          setSettings(defaultSettings);
-        } else {
-          const data = await res.json();
-          const formattedSettings = {};
-          for (const key in data) {
-            // Colors and URLs are stored as direct strings. Others might be {text: "..."}
-            if (key.endsWith('_color') || key.endsWith('_url')) {
-              formattedSettings[key] = data[key].value; // Expecting string value
-            } else {
-              const val = data[key].value;
-              formattedSettings[key] = typeof val === 'object' && val !== null && 'text' in val ? val.text : val;
-            }
-          }
-          setSettings(prev => ({ ...defaultSettings, ...formattedSettings }));
-        }
-      } catch (error) {
-        console.error("Error fetching site settings:", error);
+  const loadSettings = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/settings`);
+      if (!res.ok) {
+        console.error("Failed to fetch settings, using defaults.");
         setSettings(defaultSettings);
-      } finally {
-        setLoading(false);
+      } else {
+        const data = await res.json();
+        const formattedSettings = {};
+        for (const key in data) {
+          // Colors and URLs are stored as direct strings. Others might be {text: "..."}
+          if (key.endsWith('_color') || key.endsWith('_url')) {
+            formattedSettings[key] = data[key].value; // Expecting string value
+          } else {
+            const val = data[key].value;
+            formattedSettings[key] = typeof val === 'object' && val !== null && 'text' in val ? val.text : val;
+          }
+        }
+        setSettings(prev => ({ ...defaultSettings, ...formattedSettings }));
       }
-    };
+    } catch (error) {
+      console.error("Error fetching site settings:", error);
+      setSettings(defaultSettings);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchSettings();
+  useEffect(() => {
+    loadSettings();
   }, []);
 
   useEffect(() => {
@@ -162,9 +162,14 @@ export const SettingsProvider = ({ children }) => {
     return valueToReturn !== undefined ? valueToReturn : (fallback !== null ? fallback : (defaultSettings[key] !== undefined ? defaultSettings[key] : defaultSettings[`${key}_color`]));
   };
 
+  const refreshSettings = async () => {
+    setLoading(true);
+    await loadSettings();
+  };
+
   return (
-    <SettingsContext.Provider value={{ settings, getSetting, loading }}>
+    <SettingsContext.Provider value={{ settings, getSetting, loading, refreshSettings }}>
       {children}
     </SettingsContext.Provider>
   );
-}; 
+};
