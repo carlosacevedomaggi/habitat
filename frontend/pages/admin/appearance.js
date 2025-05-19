@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { useRouter } from 'next/router';
+import { useSettings } from '../../context/SettingsContext';
 // import Image from 'next/image';
 import { toast } from 'react-toastify';
 
@@ -49,6 +50,7 @@ const colorSections = [
 
 export default function AppearancePage() {
   const router = useRouter();
+  const { refreshSettings } = useSettings();
   const [allSettings, setAllSettings] = useState({}); // To store all settings from API
   const [themeColorSettings, setThemeColorSettings] = useState({}); // Filtered for ThemeColors
   const [homeBgUrl, setHomeBgUrl] = useState('');
@@ -172,7 +174,7 @@ export default function AppearancePage() {
         throw new Error(errData.detail);
       }
       toast.success('Theme colors updated successfully!');
-      // Optionally re-fetch or update context if it doesn't auto-update
+      await refreshSettings();
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -234,6 +236,7 @@ export default function AppearancePage() {
       setBgFile(null); // Clear file input
       setAllSettings(settingsToUpdate); // Keep allSettings in sync
       toast.success('Background image updated successfully!');
+      await refreshSettings();
       // Apply new background image to the body
       document.body.style.backgroundImage = `url(${uploadedImageUrl})`;
       document.body.style.backgroundSize = 'cover';
@@ -276,6 +279,7 @@ export default function AppearancePage() {
       setHomeBgUrl("");
       setAllSettings(settingsToUpdate); // Keep allSettings in sync
       toast.success('Background image removed.');
+      await refreshSettings();
       // Remove background image from the body
       document.body.style.backgroundImage = 'none';
     } catch (err) {
@@ -369,7 +373,7 @@ export default function AppearancePage() {
                         onChange={(e) => handleColorChange(sectionTitle, setting.key, e.target.value)}
                         className="h-10 w-10 p-0 border-none rounded cursor-pointer"
                         style={{ backgroundColor: typeof setting.value === 'string' ? setting.value : '#000000' }}
-                        disabled
+                        // allow editing colors
                       />
                       <input
                         type="text"
@@ -379,7 +383,7 @@ export default function AppearancePage() {
                         onChange={(e) => handleColorChange(sectionTitle, setting.key, e.target.value)}
                         className="input-style flex-1"
                         placeholder="#RRGGBB"
-                        disabled
+                        // allow editing colors
                       />
                     </div>
                   </div>
@@ -388,18 +392,18 @@ export default function AppearancePage() {
             </section>
           ))}
           
-          {Object.keys(themeColorSettings).length > 0 && (
-              <div className="pt-8 flex justify-end">
-                  {/* <button
-                  type="submit"
-                  disabled={isSavingColors || loadingSettings}
-                  className="btn-primary flex items-center text-gray-900"
-                  >
-                  {isSavingColors && <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle><path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75" fill="currentColor"></path></svg>}
-                  {isSavingColors ? 'Guardando Colores...' : 'Guardar Todos los Colores del Tema'}
-                  </button> */}
-              </div>
-          )}
+            {Object.keys(themeColorSettings).length > 0 && (
+                <div className="pt-8 flex justify-end">
+                    <button
+                    type="submit"
+                    disabled={isSavingColors || loadingSettings}
+                    className="btn-primary flex items-center text-gray-900"
+                    >
+                    {isSavingColors && <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle><path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75" fill="currentColor"></path></svg>}
+                    {isSavingColors ? 'Guardando Colores...' : 'Guardar Todos los Colores del Tema'}
+                    </button>
+                </div>
+            )}
         </form>
       </div>
       <style jsx>{`
