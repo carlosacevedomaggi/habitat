@@ -12,7 +12,7 @@ const settingCategories = ["General", "Contact", "Social", "AboutPage", "Footer"
 
 export default function AdminSettingsPage() {
   const router = useRouter();
-  const { settings: contextSettings, loading: contextLoading, getSetting } = useSettings(); // Get settings from context
+  const { settings: contextSettings, loading: contextLoading, getSetting, refreshSettings } = useSettings(); // Get settings from context
   const [settingsData, setSettingsData] = useState({}); // Local state for modifications
   const [initialSettingsData, setInitialSettingsData] = useState({}); // To compare for changes
   const [isSaving, setIsSaving] = useState(false);
@@ -107,8 +107,7 @@ export default function AdminSettingsPage() {
       }
       toast.success('Settings updated successfully!');
       setInitialSettingsData(JSON.parse(JSON.stringify(settingsData))); // Update baseline
-      // Optionally, trigger a re-fetch in SettingsContext if needed, or rely on its own refresh mechanism
-      if (window.location) window.location.reload(); // Force reload to see changes reflected by context
+      await refreshSettings();
     } catch (err) {
       console.error(err);
       setError(err.message);
