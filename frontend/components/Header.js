@@ -13,11 +13,11 @@ export default function Header() {
       <div className="container mx-auto flex items-center justify-between p-4">
         <Link href="/" legacyBehavior passHref>
           <a className="flex items-center space-x-2 text-2xl font-bold text-accent hover:opacity-80 transition-opacity">
-            <Image 
+            <Image
               src="/images/HABITAT_LOGO_BLK.png" // Path relative to public directory
               alt={`${siteName} Logo`}
-              width={100} // Adjust as needed
-              height={30} // Adjust as needed
+              width={160}
+              height={60}
               className="object-contain" // Ensures image scales nicely
             />
             {/* Optionally, keep site name next to logo or remove it */}
