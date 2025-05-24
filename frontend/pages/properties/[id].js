@@ -10,6 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const API_ROOT = '/api';
 
 export default function PropertyDetailPage() {
+  const NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
   const router = useRouter();
   const { id } = router.query;
   const [property, setProperty] = useState(null);
@@ -31,7 +32,7 @@ export default function PropertyDetailPage() {
     if (id) {
       setLoading(true);
       // Fetch property details
-      fetch(`${API_ROOT}/properties/${id}`)
+      fetch(`${API_ROOT}/properties/${id}/`)
         .then(res => {
           if (!res.ok) {
             if (res.status === 404) throw new Error('Propiedad no encontrada.');
@@ -114,50 +115,46 @@ export default function PropertyDetailPage() {
   if (!property) return <div className="text-center py-10 text-gray-400">Propiedad no encontrada.</div>;
 
   // Prepare images for carousel: main image first, then additional images
-  const carouselImages = [];
-  const defaultImage = '/images/default-property-bg.jpg'; // Define a default
+  const defaultImage = '/images/default-property-bg.jpg';
 
-  let mainDisplayUrl = defaultImage;
-  if (property.image_url) {
-    if (property.image_url.startsWith('http') || property.image_url.startsWith('/')) {
-      mainDisplayUrl = property.image_url;
-    } else {
-      // If it's not absolute and not root-relative, it might be a malformed URL
-      // or an old format. For safety, prepend API_ROOT if it seems like a relative API path.
-      // However, current uploads provide absolute or /static/ paths.
-      // This case is unlikely for new data.
-      mainDisplayUrl = `${API_ROOT}/${property.image_url}`; // Fallback, review if this occurs
+  const getFullImageUrl = (relativeOrAbsoluteUrl) => {
+    if (!relativeOrAbsoluteUrl) return defaultImage;
+    if (relativeOrAbsoluteUrl.startsWith('http')) {
+      return relativeOrAbsoluteUrl; // Already absolute
     }
-  }
-  
-  carouselImages.push({ image_url: mainDisplayUrl, alt: property.title });
+    // Check if it's a backend static path (e.g., /static/uploads/...)
+    if (relativeOrAbsoluteUrl.startsWith('/static/') && NEXT_PUBLIC_API_BASE_URL) {
+      return `${NEXT_PUBLIC_API_BASE_URL}${relativeOrAbsoluteUrl}`;
+    }
+    // Assume other paths starting with '/' are for the frontend public directory or handled by Next.js
+    if (relativeOrAbsoluteUrl.startsWith('/')) {
+      return relativeOrAbsoluteUrl;
+    }
+    return defaultImage; // Fallback for unknown formats
+  };
 
+  const carouselImages = [];
+  // Process the main image
+  const mainImageUrl = getFullImageUrl(property.image_url);
+  carouselImages.push({
+    image_url: mainImageUrl,
+    alt: property.title || `Property Image` // Main image alt
+  });
+
+  // Process additional images
   if (property.images && property.images.length > 0) {
-    property.images.forEach(img => {
-      let additionalImgUrl = defaultImage;
-      if (img.image_url) {
-        if (img.image_url.startsWith('http') || img.image_url.startsWith('/')) {
-          additionalImgUrl = img.image_url;
-        } else {
-          // Similar to mainDisplayUrl, this case should be rare.
-          additionalImgUrl = `${API_ROOT}/${img.image_url}`; // Fallback
-        }
-      }
-      // Add only if different from mainDisplayUrl to avoid duplicates if main is also in images list by chance
-      if (additionalImgUrl !== mainDisplayUrl) {
-        carouselImages.push({ image_url: additionalImgUrl, alt: `${property.title} - Imagen adicional ${img.order + 1}` });
+    property.images.forEach((img, index) => {
+      const additionalImageUrl = getFullImageUrl(img.image_url);
+      // Add only if it's different from the main image that's already added
+      if (additionalImageUrl !== mainImageUrl) {
+        carouselImages.push({
+          image_url: additionalImageUrl,
+          alt: `${property.title || 'Property Image'} - Imagen adicional ${img.order !== undefined ? img.order + 1 : index + 1}`
+        });
       }
     });
   }
-  // If carousel is still empty (e.g. main was default, no additional images), ensure at least the default is there.
-  if (carouselImages.length === 0 && mainDisplayUrl === defaultImage) {
-    // This case should be covered by the initial push of mainDisplayUrl
-  } else if (carouselImages.length === 0 && mainDisplayUrl !== defaultImage) {
-    // This means mainDisplayUrl was valid but different from default, and no additional images.
-    // Already pushed, so this is fine.
-  } else if (carouselImages.length === 0) { // Catch all if somehow empty
-    carouselImages.push({ image_url: defaultImage, alt: 'Imagen no disponible' });
-  }
+  // At this point, carouselImages contains at least one image (mainImageUrl, which could be defaultImage).
 
   return (
     <>

@@ -13,10 +13,10 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from .core.database import SessionLocal
-from . import models
-from .auth import utils as auth_utils
-from .models import Role
+from core.database import SessionLocal
+import models
+from auth import utils as auth_utils
+from models import Role
 
 # ---------------------------------------------------------------------------
 # Configuration – feel free to tweak
@@ -28,40 +28,58 @@ ADMIN_PASSWORD = "Admin123!"  # change after first login!
 # NEW TEAM MEMBERS -----------------------------------------------------------
 TEAM_MEMBERS: list[dict] = [
     {
-        "name": "Carlos Acevedo",
-        "position": "CEO / Broker",
-        "image_url": "https://randomuser.me/api/portraits/men/1.jpg",
+        "name": "Member One",
+        "position": "Position One",
+        "image_url": "/uploads/team/Asesora de imagen_20250519_093556_0000.jpg",
         "order": 1,
     },
     {
-        "name": "Andrea Gómez",
-        "position": "Gerente de Ventas",
-        "image_url": "https://randomuser.me/api/portraits/women/44.jpg",
+        "name": "Member Two",
+        "position": "Position Two",
+        "image_url": "/uploads/team/Asesora de imagen_20250519_093556_0001.jpg",
         "order": 2,
     },
     {
-        "name": "Luis Pérez",
-        "position": "Agente Inmobiliario",
-        "image_url": "https://randomuser.me/api/portraits/men/22.jpg",
+        "name": "Member Three",
+        "position": "Position Three",
+        "image_url": "/uploads/team/Asesora de imagen_20250519_093556_0002.jpg",
         "order": 3,
     },
     {
-        "name": "María Rodríguez",
-        "position": "Agente Inmobiliario",
-        "image_url": "https://randomuser.me/api/portraits/women/68.jpg",
+        "name": "Member Four",
+        "position": "Position Four",
+        "image_url": "/uploads/team/Asesora de imagen_20250519_093557_0003.jpg",
         "order": 4,
     },
     {
-        "name": "José Martínez",
-        "position": "Coordinador de Marketing",
-        "image_url": "https://randomuser.me/api/portraits/men/55.jpg",
+        "name": "Member Five",
+        "position": "Position Five",
+        "image_url": "/uploads/team/Asesora de imagen_20250519_093557_0004.jpg",
         "order": 5,
     },
     {
-        "name": "Paola Sánchez",
-        "position": "Asistente Administrativa",
-        "image_url": "https://randomuser.me/api/portraits/women/12.jpg",
+        "name": "Member Six",
+        "position": "Position Six",
+        "image_url": "/uploads/team/Asesora de imagen_20250519_093557_0005.jpg",
         "order": 6,
+    },
+    {
+        "name": "Member Seven",
+        "position": "Position Seven",
+        "image_url": "/uploads/team/Asesora de imagen_20250519_093557_0006.jpg",
+        "order": 7,
+    },
+    {
+        "name": "Member Eight",
+        "position": "Position Eight",
+        "image_url": "/uploads/team/Asesora de imagen_20250519_122049_0000.jpg",
+        "order": 8,
+    },
+    {
+        "name": "Member Nine",
+        "position": "Position Nine",
+        "image_url": "/uploads/team/WhatsApp Image 2025-05-19 at 9.23.08 AM.jpeg",
+        "order": 9,
     },
 ]
 
@@ -401,16 +419,37 @@ def seed_properties(db: Session):
 
 
 def seed_team(db: Session):
-    existing = db.query(models.TeamMember).count()
-    if existing >= len(TEAM_MEMBERS):
-        print("Team members already seeded – skipping.")
-        return
-
-    for member in TEAM_MEMBERS:
-        if not db.query(models.TeamMember).filter(models.TeamMember.name == member["name"]).first():
-            db.add(models.TeamMember(**member))
+    updated_count = 0
+    created_count = 0
+    for member_data in TEAM_MEMBERS:
+        existing_member = db.query(models.TeamMember).filter(models.TeamMember.name == member_data["name"]).first()
+        if existing_member:
+            # Update existing member if data differs
+            changed = False
+            if existing_member.position != member_data["position"]:
+                existing_member.position = member_data["position"]
+                changed = True
+            if existing_member.image_url != member_data["image_url"]:
+                existing_member.image_url = member_data["image_url"]
+                changed = True
+            if existing_member.order != member_data["order"]:
+                existing_member.order = member_data["order"]
+                changed = True
+            
+            if changed:
+                db.add(existing_member)
+                updated_count += 1
+        else:
+            # Add new member
+            db.add(models.TeamMember(**member_data))
+            created_count += 1
     db.commit()
-    print(f"Inserted/updated {len(TEAM_MEMBERS)} team members.")
+    if created_count > 0:
+        print(f"Inserted {created_count} new team members.")
+    if updated_count > 0:
+        print(f"Updated {updated_count} existing team members.")
+    if created_count == 0 and updated_count == 0:
+        print("Team members are already up to date.")
 
 
 def seed_settings(db: Session):

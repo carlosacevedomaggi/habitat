@@ -80,7 +80,7 @@ export const SettingsProvider = ({ children }) => {
 
   const loadSettings = async () => {
     try {
-      const res = await fetch(`${API_BASE}/settings`);
+      const res = await fetch(`${API_BASE}/settings/`);
       if (!res.ok) {
         console.error("Failed to fetch settings, using defaults.");
         setSettings(defaultSettings);

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import Dict, Optional
-from .. import models, schemas
+import models, schemas
 
 
 def get_settings(db: Session) -> Dict[str, models.SiteSettings]:

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import Dict, Optional, Any
-from .. import models, schemas
+import models, schemas
 
 class CRUDSiteSetting:
     def get_settings(self, db: Session) -> Dict[str, models.SiteSettings]: # Changed to models.SiteSetting, assuming SiteSettings is the model

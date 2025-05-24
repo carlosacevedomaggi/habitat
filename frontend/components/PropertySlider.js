@@ -4,6 +4,8 @@ import { Navigation } from 'swiper/modules';
 import Image from 'next/image';
 import Link from 'next/link';
 
+const NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export default function PropertySlider({ title, properties }) {
   const prevRef = useRef(null);
   const nextRef = useRef(null);
@@ -44,14 +46,19 @@ export default function PropertySlider({ title, properties }) {
             1024: { slidesPerView: 3.2 },
           }}
         >
-          {properties.map((prop) => (
+          {properties.map((prop) => {
+            const imageUrl = prop.image_url && NEXT_PUBLIC_API_BASE_URL && prop.image_url.startsWith('/')
+              ? `${NEXT_PUBLIC_API_BASE_URL}${prop.image_url}`
+              : prop.image_url || 'https://via.placeholder.com/300x200?text=No+Image';
+
+            return (
             <SwiperSlide key={prop.id}>
               <Link href={`/properties/${prop.id}`} className="block group bg-white rounded-lg shadow overflow-hidden">
                 <div className="flex h-48">
                   {/* Left half - image (takes 50%) */}
                   <div className="relative w-1/2">
                     <Image
-                      src={prop.image_url || 'https://via.placeholder.com/300x200?text=No+Image'}
+                      src={imageUrl}
                       alt={prop.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -71,7 +78,8 @@ export default function PropertySlider({ title, properties }) {
                 </div>
               </Link>
             </SwiperSlide>
-          ))}
+          );
+        })}
         </Swiper>
       </div>
     </section>

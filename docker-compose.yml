@@ -4,7 +4,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image: "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/habitat-backend:latest"
+    entrypoint: ["/app/entrypoint.sh"]
     env_file:
       - ./.env
     restart: always
@@ -17,7 +17,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    image: "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/habitat-frontend:latest"
+    # image: "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/habitat-frontend:latest"
     env_file:
       - ./.env
     restart: always
@@ -48,4 +48,4 @@ services:
     restart: always
 
 volumes:
-  db_data: {} 
+  db_data: {}

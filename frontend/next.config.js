@@ -9,13 +9,34 @@ const nextConfig = {
   // For image optimization from external sources (if not using cloud storage directly served):
   images: {
     // Allow loading images from Unsplash and local backend during development
-    domains: [
-      'images.unsplash.com', // Unsplash sample/property images
-      'unsplash.com',        // Fallback Unsplash host (rare but safe)
-      'localhost',           // Local backend files served via http://localhost:8000/uploads
-      'picsum.photos'        // Random placeholder images
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'unsplash.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'backend', // Docker service name for backend
+        port: '8000',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
     ],
   },
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/api/:path*',
+  //       destination: 'http://backend:8000/api/:path*', // Proxy to backend service
+  //     },
+  //   ];
+  // },
 };
 
-module.exports = nextConfig; 
+module.exports = nextConfig;

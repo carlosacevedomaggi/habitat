@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from .. import models, schemas
+import models, schemas
 from sqlalchemy.sql import func
 
 # ---------- Property CRUD ----------

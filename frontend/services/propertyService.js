@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://backend:8000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "/api"; // Uses proxy if env var not set
 
 export async function fetchProperties(query = "") {
   const res = await fetch(`${API_BASE}/properties/${query}`);
@@ -9,7 +9,7 @@ export async function fetchProperties(query = "") {
 }
 
 export async function fetchProperty(id) {
-  const res = await fetch(`${API_BASE}/properties/${id}`);
+  const res = await fetch(`${API_BASE}/properties/${id}/`);
   if (!res.ok) {
     throw new Error("Property not found");
   }

@@ -8,6 +8,8 @@ import { toast } from 'react-toastify';
 
 const API_ROOT = '/api';
 
+const NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export default function AdminTeamPage() {
   const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +49,7 @@ export default function AdminTeamPage() {
     // Consider adding a per-item loading state if many items can be deleted quickly.
 
     try {
-      const res = await fetch(`${API_ROOT}/team/${memberId}`, {
+      const res = await fetch(`${API_ROOT}/team/${memberId}/`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -73,7 +75,7 @@ export default function AdminTeamPage() {
   //   setTeamMembers(items.map((item, index) => ({...item, order: index })));
   //   const token = localStorage.getItem('habitat_admin_token');
   //   try {
-  //     const res = await fetch(`${API_ROOT}/api/team/reorder`, { 
+  //     const res = await fetch(`${API_ROOT}/team/reorder/`, {
   //       method: 'POST',
   //       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
   //       body: JSON.stringify({ order_data: updatedOrder }),
@@ -110,14 +112,19 @@ export default function AdminTeamPage() {
         {/* Placeholder for DragDropContext if you install and uncomment react-beautiful-dnd */}
         {/* <DragDropContext onDragEnd={onDragEnd}> ... </DragDropContext> */}
         <div className="space-y-4">
-          {teamMembers.map((member, index) => (
+          {teamMembers.map((member, index) => {
+            const imageUrl = member.image_url && NEXT_PUBLIC_API_BASE_URL && member.image_url.startsWith('/')
+              ? `${NEXT_PUBLIC_API_BASE_URL}${member.image_url}`
+              : member.image_url;
+
+            return (
             // Replace with Draggable if using react-beautiful-dnd
             <div key={member.id} className="flex items-center justify-between bg-gray-700 p-4 rounded-lg shadow hover:shadow-md transition-shadow">
               <div className="flex items-center space-x-4">
                 {/* Drag handle icon - conditionally render if using dnd */}
                 {/* <span {...(providedDrag ? providedDrag.dragHandleProps : {})}><i className="fas fa-grip-vertical text-gray-500 hover:text-accent cursor-grab mr-2"></i></span> */}
-                {member.image_url && <img src={member.image_url} alt={member.name} className="w-16 h-16 rounded-full object-cover"/>}
-                {!member.image_url && <div className="w-16 h-16 rounded-full bg-gray-600 flex items-center justify-center text-accent"><i className="fas fa-user fa-2x"></i></div>}
+                {imageUrl && <img src={imageUrl} alt={member.name} className="w-16 h-16 rounded-full object-cover"/>}
+                {!imageUrl && <div className="w-16 h-16 rounded-full bg-gray-600 flex items-center justify-center text-accent"><i className="fas fa-user fa-2x"></i></div>}
                 <div>
                   <h3 className="text-lg font-semibold text-white">{member.name}</h3>
                   <p className="text-sm text-gray-400">{member.position}</p>
@@ -136,7 +143,8 @@ export default function AdminTeamPage() {
                 </button>
               </div>
             </div>
-          ))}
+          );
+        })}
         </div>
       </div>
     </AdminLayout>

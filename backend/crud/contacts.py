@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from .. import models, schemas
+import models, schemas
 
 class CRUDContact:
     def create_contact(self, db: Session, contact_in: schemas.ContactCreate) -> models.Contact:

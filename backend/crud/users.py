@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from .. import models, schemas
-from ..auth import utils as auth_utils
-from ..models import Role
+import models, schemas
+from auth import utils as auth_utils
+from models import Role
 
 class CRUDUser:
     def get_user(self, db: Session, user_id: int) -> Optional[models.User]:
