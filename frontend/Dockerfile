@@ -1,7 +1,8 @@
 # Stage 1: install dependencies and build
 FROM node:18-alpine AS builder
 WORKDIR /app
-ENV NEXT_PUBLIC_API_BASE_URL=http://backend:8000/api
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Copy package definitions and install
 COPY package*.json ./

@@ -131,7 +131,7 @@ class SiteSetting(SiteSettingBase):
 class TeamMemberBase(BaseModel):
     name: str
     position: Optional[str] = None
-    image_url: Optional[HttpUrl] = None
+    image_url: Optional[str] = None
     order: Optional[int] = 0
 
 class TeamMemberCreate(TeamMemberBase):
@@ -140,7 +140,7 @@ class TeamMemberCreate(TeamMemberBase):
 class TeamMemberUpdate(BaseModel):
     name: Optional[str] = None
     position: Optional[str] = None
-    image_url: Optional[HttpUrl] = None
+    image_url: Optional[str] = None
     order: Optional[int] = None
 
 class TeamMember(TeamMemberBase):

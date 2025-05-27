@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useSettings } from '../context/SettingsContext';
 
-const API_ROOT = '/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Assuming NEXT_PUBLIC_API_URL is like http://localhost/api, BACKEND_STATIC_BASE_URL will be http://localhost
+const BACKEND_STATIC_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_STATIC_ROOT || '';
 
 export default function AboutPage() {
   const { getSetting, loading: settingsLoading } = useSettings();
@@ -14,7 +16,7 @@ export default function AboutPage() {
     const fetchTeamMembers = async () => {
       setTeamLoading(true);
       try {
-        const res = await fetch(`${API_ROOT}/team/`);
+        const res = await fetch(`${API_URL}/team/`);
         if (!res.ok) throw new Error('Failed to fetch team members');
         const data = await res.json();
         setTeamMembers(data.sort((a,b) => (a.order ?? Infinity) - (b.order ?? Infinity)));
@@ -132,7 +134,7 @@ export default function AboutPage() {
                 <div key={member.id} className="bg-gray-800 rounded-xl shadow-xl overflow-hidden text-center group transform hover:scale-105 transition-transform duration-300">
                   <div className="h-64 w-full overflow-hidden">
                     <img 
-                      src={member.image_url ? (member.image_url.startsWith('http') ? member.image_url : `${API_ROOT}${member.image_url}`) : '/images/placeholder-user.png'} 
+                      src={member.image_url ? (member.image_url.startsWith('http') ? member.image_url : `${BACKEND_STATIC_BASE_URL}${member.image_url}`) : '/images/placeholder-user.png'}
                       alt={member.name} 
                       className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
                     />

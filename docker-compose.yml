@@ -10,6 +10,8 @@ services:
     restart: always
     ports:
       - "8000:8000"
+    volumes:
+      - ./team:/app/backend/static/uploads/team  # Mount host ./team to backend container
     depends_on:
       - db
 
@@ -17,6 +19,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     # image: "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/habitat-frontend:latest"
     env_file:
       - ./.env

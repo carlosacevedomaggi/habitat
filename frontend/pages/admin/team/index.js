@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 const API_ROOT = '/api';
 
 const NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const BACKEND_STATIC_ROOT = process.env.NEXT_PUBLIC_BACKEND_STATIC_ROOT;
 
 export default function AdminTeamPage() {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -113,8 +114,8 @@ export default function AdminTeamPage() {
         {/* <DragDropContext onDragEnd={onDragEnd}> ... </DragDropContext> */}
         <div className="space-y-4">
           {teamMembers.map((member, index) => {
-            const imageUrl = member.image_url && NEXT_PUBLIC_API_BASE_URL && member.image_url.startsWith('/')
-              ? `${NEXT_PUBLIC_API_BASE_URL}${member.image_url}`
+            const imageUrl = member.image_url && BACKEND_STATIC_ROOT && member.image_url.startsWith('/')
+              ? `${BACKEND_STATIC_ROOT}${member.image_url}`
               : member.image_url;
 
             return (
