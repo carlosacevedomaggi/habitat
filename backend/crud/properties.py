@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 import models, schemas
 from sqlalchemy.sql import func
+import logging
+logger = logging.getLogger(__name__)
 
 # ---------- Property CRUD ----------
 
@@ -23,12 +25,34 @@ class CRUDProperty:
         max_area: Optional[float] = None,
         current_user: Optional[models.User] = None
     ) -> List[models.Property]:
+        log_call_details = (
+            f"get_properties called with skip={skip}, limit={limit}, search='{search}', "
+            f"property_type='{property_type}', listing_type='{listing_type}', "
+            f"min_price={min_price}, max_price={max_price}, "
+            f"min_bedrooms={min_bedrooms}, max_bedrooms={max_bedrooms}, "
+            f"min_bathrooms={min_bathrooms}, max_bathrooms={max_bathrooms}, "
+            f"min_area={min_area}, max_area={max_area}"
+        )
+        logger.info(log_call_details)
+        
+        user_info = "Public user (Unauthenticated)"
+        if current_user:
+            user_info = f"User '{current_user.username}' (Role: {current_user.role.value if current_user.role else 'N/A'})"
+        logger.info(f"Request context: {user_info}")
+
         query = db.query(models.Property)
 
         if current_user:
             if current_user.role == models.Role.staff:
+                logger.info(f"Applying filter for staff user {current_user.username}: only assigned_to_id == {current_user.id}")
                 query = query.filter(models.Property.assigned_to_id == current_user.id)
-
+            # Potentially other role-based filters for authenticated users could go here
+            # else:
+            #     # For admin/manager, perhaps show all, or all non-draft?
+            #     # For now, if not staff, no additional user-based filters are applied beyond public visibility rules
+            #     logger.info(f"User {current_user.username} (Role: {current_user.role.value}) - no specific user-based query adjustments other than general filters.")
+                
+        # Standard filters applicable to all (public and authenticated)
         if search:
             ilike = f"%{search}%"
             query = query.filter(models.Property.title.ilike(ilike) | models.Property.location.ilike(ilike))
@@ -53,7 +77,20 @@ class CRUDProperty:
         if max_area is not None:
             query = query.filter(models.Property.square_feet <= max_area)
 
-        return query.offset(skip).limit(limit).all()
+        properties_returned = query.offset(skip).limit(limit).all()
+        
+        logger.info(f"{user_info} - Query resulted in {len(properties_returned)} properties being returned (after offset/limit):")
+        if not properties_returned:
+            logger.info("  No properties matched the criteria.")
+        for prop in properties_returned:
+            logger.info(
+                f"  - ID: {prop.id}, Title: '{prop.title}', Status: '{prop.status}', "
+                f"Price: {prop.price}, Bedrooms: {prop.bedrooms}, Location: '{prop.location}', "
+                f"Assigned_to_id: {prop.assigned_to_id}, Created_by_user_id: {prop.created_by_user_id}, "
+                f"Is_Featured: {prop.is_featured}"
+            )
+            
+        return properties_returned
 
     def get_property(self, db: Session, property_id: int) -> Optional[models.Property]:
         return db.query(models.Property).filter(models.Property.id == property_id).first()
