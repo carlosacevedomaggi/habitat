@@ -16,14 +16,30 @@ export default function AboutPage() {
     const fetchTeamMembers = async () => {
       setTeamLoading(true);
       try {
-        const res = await fetch(`${API_URL}/team/`);
-        if (!res.ok) throw new Error('Failed to fetch team members');
+        const resolvedApiUrl = `${API_URL}/team/`;
+        console.log("[AboutPage] Attempting to fetch team from:", resolvedApiUrl);
+        const res = await fetch(resolvedApiUrl);
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("[AboutPage] Team fetch failed:", res.status, errorText);
+          throw new Error(`Failed to fetch team members. Status: ${res.status}`);
+        }
         const data = await res.json();
+        console.log("[AboutPage] Successfully fetched team members:", data);
         setTeamMembers(data.sort((a,b) => (a.order ?? Infinity) - (b.order ?? Infinity)));
       } catch (err) {
+        console.error("[AboutPage] Error in fetchTeamMembers catch block:", err.message);
         setTeamError(err.message || 'Could not load team members.');
       }
       setTeamLoading(false);
+      // Log final states after attempt
+      console.log("[AboutPage] Final teamLoading state:", false);
+      console.log("[AboutPage] Final teamError state:", teamError); // Note: teamError might not be updated yet here due to setState batching
+      // To see the updated teamError, it's better to log it where it's used or in a subsequent effect.
+      // For immediate check after set, you might need a different approach or rely on dev tools.
+      // Logging teamMembers state here will show the current state value at the time of this log.
+      // If setTeamMembers just ran, this log might show the previous state.
+      // console.log("[AboutPage] teamMembers state after fetch attempt:", teamMembers); // This will show the value of teamMembers *before* this render's update is committed
     };
     fetchTeamMembers();
   }, []);
