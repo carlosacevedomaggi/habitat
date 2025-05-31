@@ -1,0 +1,53 @@
+version: '3.8'
+services:
+  backend:
+    image: ghcr.io/carlosacevedomaggi/habitat-backend:latest
+    entrypoint: ["/app/entrypoint.sh"]
+    env_file:
+      - ./.env
+    restart: always
+    ports:
+      - "8000:8000" # This might not be needed if Nginx is the only public-facing port
+    volumes:
+      - ./team:/app/backend/static/uploads/team  # Mount host ./team to backend container
+      # Consider if other persistent volumes are needed for backend/static/uploads/properties or /general
+      # For production, you might want a named volume for all uploads, e.g.:
+      # - backend_uploads:/app/backend/static/uploads
+    depends_on:
+      - db
+
+  frontend:
+    image: ghcr.io/carlosacevedomaggi/habitat-frontend:latest
+    env_file: # .env can still provide runtime ENV VARS if your Next.js app uses them beyond NEXT_PUBLIC_*
+      - ./.env
+    restart: always
+    ports:
+      - "3000:3000" # This might not be needed if Nginx is the only public-facing port
+    depends_on:
+      - backend
+
+  proxy:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+
+  db:
+    image: postgres:15-alpine
+    env_file:
+      - ./.env
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  db_data: {}
+  # If you opt for a named volume for uploads:
+  # backend_uploads: {}
