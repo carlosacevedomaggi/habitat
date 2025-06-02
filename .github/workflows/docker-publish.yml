@@ -66,5 +66,5 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Image digest
-        run: echo "Pushed backend image digest: \${{ steps.build-and-push-backend.outputs.digest }}" && echo "Pushed frontend image digest: \${{ steps.build-and-push-frontend.outputs.digest }}"
+        run: echo "Test echo step" # Simplified for syntax testing
         # Note: To get digest output, you need to give an id to the build-push-action steps, e.g., id: build-and-push-backend
