@@ -5,55 +5,49 @@ set -e # Exit immediately if a command exits with a non-zero status.
 GHCR_OWNER="carlosacevedomaggi"
 BACKEND_IMAGE_NAME="habitat-backend"
 FRONTEND_IMAGE_NAME="habitat-frontend"
-IMAGE_TAG="latest" # Or use a version number, git commit SHA, etc.
+IMAGE_TAG="latest" 
+TARGET_PLATFORM="linux/amd64" # Target platform for Lightsail
 
-# Production Next.js Public API URL
-# This will be baked into the frontend image during its build process.
 PRODUCTION_NEXT_PUBLIC_API_URL="https://habitatvip.com/api"
 
-# Derived image names for GHCR
 GHCR_BACKEND_IMAGE="ghcr.io/${GHCR_OWNER}/${BACKEND_IMAGE_NAME}:${IMAGE_TAG}"
 GHCR_FRONTEND_IMAGE="ghcr.io/${GHCR_OWNER}/${FRONTEND_IMAGE_NAME}:${IMAGE_TAG}"
 
-# --- Login to GitHub Container Registry ---
-# You need to authenticate to GHCR before pushing images.
-# Typically, this is done using a Personal Access Token (PAT) with 'write:packages' scope.
-# 1. Generate a PAT from your GitHub Developer settings.
-# 2. Log in using the PAT as the password and your GitHub username:
-#    echo "YOUR_PAT" | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
-#
-# IMPORTANT: Replace YOUR_PAT and YOUR_GITHUB_USERNAME with your actual credentials.
-# For CI/CD, store the PAT as a secret.
+# --- Ensure Docker Buildx builder is active ---
 echo "---------------------------------------------------------------------"
-echo "IMPORTANT: Ensure you are logged into GHCR before running this script fully."
+echo "Using Docker Buildx builder 'my_amd64_builder'."
+echo "Ensure it's created and bootstrapped (docker buildx create --use --name my_amd64_builder; docker buildx inspect my_amd64_builder --bootstrap)"
+echo "---------------------------------------------------------------------"
+docker buildx use my_amd64_builder
+
+# --- Login to GitHub Container Registry ---
+echo "---------------------------------------------------------------------"
+echo "IMPORTANT: Ensure you are logged into GHCR."
 echo "Example: echo YOUR_PAT | docker login ghcr.io -u ${GHCR_OWNER} --password-stdin"
 echo "---------------------------------------------------------------------"
 # read -p "Press [Enter] to continue after ensuring you are logged in, or Ctrl+C to abort..."
 
-# --- Build Backend Image ---
-echo "Building backend Docker image: ${GHCR_BACKEND_IMAGE}..."
-docker build -t "${GHCR_BACKEND_IMAGE}" ./backend
-echo "Backend image build complete."
+# --- Build and Push Backend Image for amd64 ---
+echo "Building and pushing backend Docker image for ${TARGET_PLATFORM}: ${GHCR_BACKEND_IMAGE}..."
+docker buildx build \
+  --platform "${TARGET_PLATFORM}" \
+  -t "${GHCR_BACKEND_IMAGE}" \
+  --push \
+  ./backend  # Assumes script is run from project root
+echo "Backend image build and push complete for ${TARGET_PLATFORM}."
 
-# --- Build Frontend Image ---
-echo "Building frontend Docker image: ${GHCR_FRONTEND_IMAGE} with API URL: ${PRODUCTION_NEXT_PUBLIC_API_URL}..."
-docker build \
+# --- Build and Push Frontend Image for amd64 ---
+echo "Building and pushing frontend Docker image for ${TARGET_PLATFORM}: ${GHCR_FRONTEND_IMAGE} with API URL: ${PRODUCTION_NEXT_PUBLIC_API_URL}..."
+docker buildx build \
+  --platform "${TARGET_PLATFORM}" \
   --build-arg NEXT_PUBLIC_API_URL="${PRODUCTION_NEXT_PUBLIC_API_URL}" \
   -t "${GHCR_FRONTEND_IMAGE}" \
-  ./frontend
-echo "Frontend image build complete."
-
-# --- Push Images to GHCR ---
-echo "Pushing backend image to GHCR: ${GHCR_BACKEND_IMAGE}..."
-docker push "${GHCR_BACKEND_IMAGE}"
-echo "Backend image pushed."
-
-echo "Pushing frontend image to GHCR: ${GHCR_FRONTEND_IMAGE}..."
-docker push "${GHCR_FRONTEND_IMAGE}"
-echo "Frontend image pushed."
+  --push \
+  ./frontend # Assumes script is run from project root
+echo "Frontend image build and push complete for ${TARGET_PLATFORM}."
 
 echo "---------------------------------------------------------------------"
-echo "Script finished. Images should be available at:"
+echo "Script finished. Images for ${TARGET_PLATFORM} should be available at:"
 echo "Backend: ${GHCR_BACKEND_IMAGE}"
 echo "Frontend: ${GHCR_FRONTEND_IMAGE}"
 echo "---------------------------------------------------------------------"

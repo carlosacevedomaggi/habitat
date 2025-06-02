@@ -1,0 +1,31 @@
+# AWS Configuration (Consider IAM Roles for Lightsail if app needs AWS service access)
+# Comment out or leave blank if your app doesn't directly use these SDK keys.
+# AWS_ACCOUNT=
+# AWS_REGION=us-east-2
+# AWS_ACCESS_KEY_ID=
+# AWS_SECRET_ACCESS_KEY=
+
+# PostgreSQL Database Configuration
+# IMPORTANT: Replace 'habitat_prod_user' and 'habitat_prod_db' if you prefer different names.
+# The POSTGRES_PASSWORD below was generated for you.
+POSTGRES_USER=habitat_prod_user
+POSTGRES_PASSWORD=VmyVGCqH/e3h59oP1I34TFvhEi5SBSvF
+POSTGRES_DB=habitat_prod_db
+
+# Backend Configuration
+# This uses the values from above. Ensure it matches your chosen user/db.
+DATABASE_URL=postgresql://habitat_prod_user:VmyVGCqH/e3h59oP1I34TFvhEi5SBSvF@db:5432/habitat_prod_db
+
+# FastAPI/Application Secret Keys
+# These were generated for you. KEEP THEM SECRET.
+SECRET_KEY=5e4dfe314b2851640495cc4fc0a4039d73781663260fc536b11720ab6bc572f8
+JWT_SECRET_KEY=504880ed5b25689891a580f4cb6b2ad77a366cb254f65cc7377556446ee15c71
+
+# Application Specific Settings
+NON_ADMIN_CAN_VIEW_ALL_CONTACTS=false # Set to true or false based on production policy
+NEXT_PUBLIC_API_URL=https://habitatvip.com/api
+NODE_ENV=production
+
+# --- Add any other application-specific environment variables below ---
+# Example:
+# DEBUG=False # Ensure debug is off in production
