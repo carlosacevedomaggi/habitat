@@ -23,7 +23,13 @@ JWT_SECRET_KEY=504880ed5b25689891a580f4cb6b2ad77a366cb254f65cc7377556446ee15c71
 
 # Application Specific Settings
 NON_ADMIN_CAN_VIEW_ALL_CONTACTS=false # Set to true or false based on production policy
-NEXT_PUBLIC_API_URL=https://habitatvip.com/api
+# NEXT_PUBLIC_API_URL: For production, if using the standard Docker setup with Nginx proxy,
+# this should be set to `/api/`. The frontend build process via GitHub Actions
+# now defaults to using `/api/` as the build argument.
+# If your deployment setup is different and requires the frontend to know the full API URL,
+# you can uncomment and set it, e.g., https://yourdomain.com/api/.
+# The frontend service is capable of handling both relative and full URLs.
+NEXT_PUBLIC_API_URL=/api/
 NODE_ENV=production
 
 # --- Add any other application-specific environment variables below ---

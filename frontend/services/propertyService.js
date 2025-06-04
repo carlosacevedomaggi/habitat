@@ -8,7 +8,9 @@ console.log("[PropertyService] Original NEXT_PUBLIC_API_URL:", process.env.NEXT_
 // For SSR (server-side), use the internal Docker network address for the proxy.
 // For client-side, use a relative path which will be handled by the browser and Nginx proxy.
 const API_BASE = IS_SERVER
-  ? `http://proxy${process.env.NEXT_PUBLIC_API_URL || '/api'}` // Assumes proxy service is named 'proxy' and listens on port 80
+  ? (process.env.NEXT_PUBLIC_API_URL && (process.env.NEXT_PUBLIC_API_URL.startsWith('http://') || process.env.NEXT_PUBLIC_API_URL.startsWith('https://')))
+    ? process.env.NEXT_PUBLIC_API_URL // Use directly if it's a full URL
+    : `http://proxy${process.env.NEXT_PUBLIC_API_URL || '/api'}` // Prepend proxy if it's a relative path or not set
   : (process.env.NEXT_PUBLIC_API_URL || '/api'); // Fallback to /api for client if NEXT_PUBLIC_API_URL is not set
 
 console.log("[PropertyService] Resolved API_BASE:", API_BASE);

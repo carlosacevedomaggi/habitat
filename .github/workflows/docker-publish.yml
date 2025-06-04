@@ -59,7 +59,7 @@ jobs:
           file: ./frontend/Dockerfile
           platforms: linux/amd64 # Explicitly build for amd64
           build-args: |
-            NEXT_PUBLIC_API_URL=https://habitatvip.com/api
+            NEXT_PUBLIC_API_URL=/api
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/${{ env.FRONTEND_IMAGE_NAME }}:${{ env.IMAGE_TAG }} # Also use github.repository_owner for consistency in tag
           cache-from: type=gha
