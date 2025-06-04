@@ -10,7 +10,7 @@ env:
   GHCR_OWNER: carlosacevedomaggi # Still useful for tagging if needed, but login will use github.repository_owner
   BACKEND_IMAGE_NAME: habitat-backend
   FRONTEND_IMAGE_NAME: habitat-frontend
-  IMAGE_TAG: latest # You can also use git SHA: \${{ github.sha }}
+  IMAGE_TAG: latest # You can also use git SHA: ${{ github.sha }}
   # NEXT_PUBLIC_API_URL is defined per job if needed as build-arg
 
 jobs:
@@ -47,7 +47,7 @@ jobs:
           file: ./backend/Dockerfile
           platforms: linux/amd64 # Explicitly build for amd64
           push: true
-          tags: ghcr.io/\${{ github.repository_owner }}/\${{ env.BACKEND_IMAGE_NAME }}:\${{ env.IMAGE_TAG }} # Also use github.repository_owner for consistency in tag
+          tags: ghcr.io/${{ github.repository_owner }}/${{ env.BACKEND_IMAGE_NAME }}:${{ env.IMAGE_TAG }} # Also use github.repository_owner for consistency in tag
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -61,7 +61,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_URL=https://habitatvip.com/api
           push: true
-          tags: ghcr.io/\${{ github.repository_owner }}/\${{ env.FRONTEND_IMAGE_NAME }}:\${{ env.IMAGE_TAG }} # Also use github.repository_owner for consistency in tag
+          tags: ghcr.io/${{ github.repository_owner }}/${{ env.FRONTEND_IMAGE_NAME }}:${{ env.IMAGE_TAG }} # Also use github.repository_owner for consistency in tag
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
