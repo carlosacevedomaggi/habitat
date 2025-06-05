@@ -18,6 +18,8 @@ export default function EditPropertyPage() {
   const router = useRouter();
   const { id: propertyId } = router.query;
 
+  const [leafletReady, setLeafletReady] = useState(false); // New state for Leaflet readiness
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -51,23 +53,39 @@ export default function EditPropertyPage() {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
 
+  // Effect to check for Leaflet readiness
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.L) {
+      setLeafletReady(true);
+    } else if (typeof window !== 'undefined') {
+      const intervalId = setInterval(() => {
+        if (window.L) {
+          setLeafletReady(true);
+          clearInterval(intervalId);
+        }
+      }, 100); // Check every 100ms
+      return () => clearInterval(intervalId);
+    }
+  }, []);
+
+  // Effect for fetching initial data
   useEffect(() => {
     const token = localStorage.getItem('habitat_admin_token');
     if (!token || !propertyId) {
-      if(!token) router.push('/admin/login');
+      if (!token) router.push('/admin/login');
       setLoading(false);
       return;
     }
 
-    // Fetch current user, assignable users, and property details
+    setLoading(true); // Ensure loading is true before fetching
     Promise.all([
       fetch(`${API_ROOT}/users/me`, { headers: { Authorization: `Bearer ${token}` } })
         .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch current user')),
       fetch(`${API_ROOT}/users/`, { headers: { Authorization: `Bearer ${token}` } })
-        .then(res => res.ok ? res.json() : [])
-        .catch(() => []),
+        .then(res => res.ok ? res.json() : []) // Default to empty array on fetch failure
+        .catch(() => []), // Catch network errors for users fetch
       fetch(`${API_ROOT}/properties/${propertyId}`)
-        .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch property details'))
+        .then(res => res.ok ? res.json() : Promise.reject(`Failed to fetch property details (ID: ${propertyId})`))
     ])
     .then(([userData, usersList, propertyData]) => {
       setCurrentUser(userData);
@@ -76,13 +94,13 @@ export default function EditPropertyPage() {
       setFormData({
         title: propertyData.title || '',
         description: propertyData.description || '',
-        price: propertyData.price || '',
+        price: propertyData.price?.toString() || '', // Ensure price is string
         location: propertyData.location || '',
         property_type: propertyData.property_type || propertyTypes[0],
         listing_type: propertyData.listing_type || listingTypes[0],
-        bedrooms: propertyData.bedrooms || '',
-        bathrooms: propertyData.bathrooms || '',
-        square_feet: propertyData.square_feet || '',
+        bedrooms: propertyData.bedrooms?.toString() || '', // Ensure string
+        bathrooms: propertyData.bathrooms?.toString() || '', // Ensure string
+        square_feet: propertyData.square_feet?.toString() || '', // Ensure string
         latitude: propertyData.latitude?.toString() || '10.4806',
         longitude: propertyData.longitude?.toString() || '-66.9036',
         is_featured: propertyData.is_featured || false,
@@ -91,42 +109,73 @@ export default function EditPropertyPage() {
         assigned_to_id: propertyData.assigned_to_id || null,
       });
       setMainImagePreview(propertyData.image_url || '');
-      setImagesToDelete(propertyData.delete_image_ids || []);
+      // Assuming delete_image_ids is not part of propertyData directly, handle if needed
+      // setImagesToDelete(propertyData.delete_image_ids || []);
       setLoading(false);
     })
     .catch(err => {
       console.error("Error fetching initial data:", err);
-      toast.error(err.message || "Could not load data for editing.");
-      setError(err.message || "Could not load data.");
+      const errorMessage = typeof err === 'string' ? err : (err.message || "Could not load data for editing.");
+      toast.error(errorMessage);
+      setError(errorMessage);
       setLoading(false);
     });
+  }, [propertyId, router]); // Added router due to its use in effect
 
-    if (typeof window !== 'undefined' && !loading && formData.latitude && formData.longitude && window.L) {
-      const L = window.L;
-      const lat = parseFloat(formData.latitude);
-      const lng = parseFloat(formData.longitude);
-      if (isNaN(lat) || isNaN(lng)) return;
-      if (!mapRef.current) {
-        mapRef.current = L.map('leaflet-map').setView([lat, lng], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM' }).addTo(mapRef.current);
-        markerRef.current = L.marker([lat, lng]).addTo(mapRef.current);
-        mapRef.current.on('click', function(e) {
-          const { lat: newLat, lng: newLng } = e.latlng;
-          setFormData(prev => ({ ...prev, latitude: newLat.toFixed(6), longitude: newLng.toFixed(6) }));
-          markerRef.current.setLatLng(e.latlng);
-          mapRef.current.panTo(e.latlng);
-        });
-      } else {
-        const newLatLng = L.latLng(lat, lng);
-        mapRef.current.setView(newLatLng, mapRef.current.getZoom());
-        if (markerRef.current) markerRef.current.setLatLng(newLatLng);
-        else markerRef.current = L.marker(newLatLng).addTo(mapRef.current);
+  // Effect for map initialization and updates
+  useEffect(() => {
+    if (typeof window === 'undefined' || !leafletReady || loading || !formData.latitude || !formData.longitude) {
+      return;
+    }
+
+    const L = window.L;
+    if (!L) {
+      console.error("Leaflet (L) is not available for map initialization.");
+      return;
+    }
+
+    const lat = parseFloat(formData.latitude);
+    const lng = parseFloat(formData.longitude);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      console.warn("Invalid latitude or longitude for map:", formData.latitude, formData.longitude);
+      return; // Don't initialize map with invalid coords
+    }
+
+    if (!mapRef.current) {
+      mapRef.current = L.map('leaflet-map').setView([lat, lng], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(mapRef.current);
+      
+      markerRef.current = L.marker([lat, lng]).addTo(mapRef.current);
+
+      mapRef.current.on('click', function(e) {
+        const { lat: newLat, lng: newLng } = e.latlng;
+        setFormData(prev => ({ ...prev, latitude: newLat.toFixed(6), longitude: newLng.toFixed(6) }));
+        // No need to call mapRef.current.panTo here, setView in effect will handle it.
+      });
+    } else {
+      const newLatLng = L.latLng(lat, lng);
+      mapRef.current.setView(newLatLng, mapRef.current.getZoom());
+      if (markerRef.current) {
+        markerRef.current.setLatLng(newLatLng);
+      } else { // Should ideally not happen if map was initialized correctly
+        markerRef.current = L.marker(newLatLng).addTo(mapRef.current);
       }
     }
+  }, [leafletReady, loading, formData.latitude, formData.longitude, setFormData]); // setFormData is a dependency
+
+  // Effect for map cleanup on component unmount
+  useEffect(() => {
     return () => {
-      if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; markerRef.current = null; }
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        markerRef.current = null;
+      }
     };
-  }, [loading, formData.latitude, formData.longitude]);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
