@@ -26,13 +26,9 @@ function MyApp({ Component, pageProps }) {
           theme="colored" // Or "light", "dark"
         />
       </Layout>
-      {/* Load Leaflet JS globally */}
-      <Script 
-        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-        crossOrigin="anonymous"
-        strategy="beforeInteractive" // Load before page becomes interactive
-      />
+      {/* Leaflet JS is now included in the main bundle as it's a direct dependency.
+          The <Script> tag has been removed to avoid SRI issues and rely on the npm package.
+          Leaflet CSS is imported at the top of this file. */}
     </SettingsProvider>
   );
 }

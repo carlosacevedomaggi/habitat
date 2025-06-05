@@ -77,6 +77,16 @@ class CRUDProperty:
         if max_area is not None:
             query = query.filter(models.Property.square_feet <= max_area)
 
+        # Add deterministic ordering
+        # Assuming 'updated_at' exists and is preferred for "freshness", otherwise 'created_at'
+        # Fallback to 'id' if timestamp fields are not available or for tie-breaking.
+        if hasattr(models.Property, 'updated_at'):
+            query = query.order_by(models.Property.updated_at.desc(), models.Property.id.desc())
+        elif hasattr(models.Property, 'created_at'):
+            query = query.order_by(models.Property.created_at.desc(), models.Property.id.desc())
+        else:
+            query = query.order_by(models.Property.id.desc()) # Default to ID if no timestamp
+
         properties_returned = query.offset(skip).limit(limit).all()
         
         logger.info(f"{user_info} - Query resulted in {len(properties_returned)} properties being returned (after offset/limit):")

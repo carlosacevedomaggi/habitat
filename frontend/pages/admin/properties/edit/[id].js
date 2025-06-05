@@ -14,6 +14,11 @@ const listingTypes = ["Venta de propiedad", "Renta"];
 
 const leafletPromise = typeof window !== 'undefined' ? import('leaflet') : Promise.resolve(null);
 
+const isAbsoluteUrl = (url) => {
+  if (!url) return false;
+  return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:');
+};
+
 export default function EditPropertyPage() {
   const router = useRouter();
   const { id: propertyId } = router.query;
@@ -323,7 +328,7 @@ export default function EditPropertyPage() {
             {mainImagePreview && (
               <div className="mt-2">
                 <p className="text-xs text-gray-500 mb-1">Current/Preview Main Image:</p>
-                <img src={mainImageFile ? mainImagePreview : (mainImagePreview.startsWith('blob:') ? mainImagePreview : API_ROOT + mainImagePreview) } alt="Main image preview" className="h-32 w-auto rounded object-cover" />
+                <img src={mainImageFile ? mainImagePreview : (isAbsoluteUrl(mainImagePreview) ? mainImagePreview : API_ROOT + mainImagePreview) } alt="Main image preview" className="h-32 w-auto rounded object-cover" />
               </div>
             )}
           </div>
@@ -335,7 +340,7 @@ export default function EditPropertyPage() {
               <div className="mt-2 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                 {formData.images.map((image) => (
                   <div key={image.id} className="relative group">
-                    <img src={`${API_ROOT}${image.image_url}`} alt={`Additional image ${image.id}`} className={`h-24 w-full rounded object-cover ${imagesToDelete.includes(image.id) ? 'opacity-50 ring-2 ring-red-500' : ''}`}/>
+                    <img src={isAbsoluteUrl(image.image_url) ? image.image_url : `${API_ROOT}${image.image_url}`} alt={`Additional image ${image.id}`} className={`h-24 w-full rounded object-cover ${imagesToDelete.includes(image.id) ? 'opacity-50 ring-2 ring-red-500' : ''}`}/>
                     <button 
                       type="button"
                       onClick={() => handleToggleDeleteImage(image.id)}
