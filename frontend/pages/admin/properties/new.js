@@ -16,6 +16,7 @@ const leafletPromise = typeof window !== 'undefined' ? import('leaflet') : Promi
 
 export default function NewPropertyPage() {
   const router = useRouter();
+  const [leafletReady, setLeafletReady] = useState(false); // For Leaflet readiness
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -43,13 +44,29 @@ export default function NewPropertyPage() {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
 
+  // Effect to check for Leaflet readiness
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.L) {
+      setLeafletReady(true);
+    } else if (typeof window !== 'undefined') {
+      // Poll for Leaflet if not immediately available (e.g. if script loads slower)
+      const intervalId = setInterval(() => {
+        if (window.L) {
+          setLeafletReady(true);
+          clearInterval(intervalId);
+        }
+      }, 100);
+      return () => clearInterval(intervalId); // Cleanup interval on unmount
+    }
+  }, []);
+
+  // Effect for fetching user data
   useEffect(() => {
     const token = localStorage.getItem('habitat_admin_token');
     if (!token) {
       router.push('/admin/login');
       return;
     }
-    // Fetch current user and assignable users
     Promise.all([
       fetch(`${API_ROOT}/users/me`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch current user')),
       fetch(`${API_ROOT}/users/`, { headers: { Authorization: `Bearer ${token}` } }).then(res => res.ok ? res.json() : Promise.reject('Failed to fetch assignable users'))
@@ -61,43 +78,58 @@ export default function NewPropertyPage() {
     .catch(err => {
       console.error("Error fetching user data:", err);
       toast.error(err.message || "Could not load user data for assignment.");
-      // Decide if this is critical enough to block form usage or just hide assignment
     });
+  }, [router]); // Added router as dependency
 
-    if (!mapRef.current) {
-      leafletPromise.then((module) => {
-        const L = module?.default ?? window.L;
-        if (!L) return;
-        const container = document.getElementById('leaflet-map');
-        if (!container) return;
-        const initialLat = parseFloat(formData.latitude) || 10.4806;
-        const initialLng = parseFloat(formData.longitude) || -66.9036;
-        if (container._leaflet_id) {
-          // Remove old id so Leaflet can init again (hot reload)
-          container._leaflet_id = null;
-        }
-        const map = L.map(container).setView([initialLat, initialLng], 13);
-        mapRef.current = map;
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-        markerRef.current = L.marker([initialLat, initialLng]).addTo(map);
-        map.on('click', function(e) {
-          const { lat, lng } = e.latlng;
-          setFormData(prev => ({ ...prev, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }));
-          markerRef.current.setLatLng(e.latlng);
-          mapRef.current.panTo(e.latlng);
-        });
+  // Effect for map initialization
+  useEffect(() => {
+    if (leafletReady && typeof window !== 'undefined' && !mapRef.current) {
+      const L = window.L;
+      if (!L) {
+        console.error("Leaflet (L) object not found, cannot initialize map.");
+        return;
+      }
+      const container = document.getElementById('leaflet-map');
+      if (!container) {
+        console.error("Map container 'leaflet-map' not found.");
+        return;
+      }
+      // Ensure container is not already initialized by Leaflet (for HMR or other re-renders)
+      if (container._leaflet_id) {
+         // console.warn("Map container already initialized by Leaflet. Skipping re-initialization or consider removing old map.");
+         // return; // Or attempt to remove and re-init, but can be tricky.
+         // For new page, it's less likely to be an issue than edit page.
+      }
+
+      const initialLat = parseFloat(formData.latitude) || 10.4806; // Default to Caracas
+      const initialLng = parseFloat(formData.longitude) || -66.9036;
+
+      mapRef.current = L.map(container).setView([initialLat, initialLng], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(mapRef.current);
+      
+      markerRef.current = L.marker([initialLat, initialLng]).addTo(mapRef.current);
+
+      mapRef.current.on('click', function(e) {
+        const { lat, lng } = e.latlng;
+        setFormData(prev => ({ ...prev, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }));
+        // Marker position will be updated by the next useEffect
       });
     }
+    // No explicit cleanup here, mapRef.current.remove() will be in its own unmount effect
+  }, [leafletReady, formData.latitude, formData.longitude]); // formData lat/lng for initial view
+
+  // Effect for map cleanup on component unmount
+  useEffect(() => {
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
+        markerRef.current = null; // Also clear markerRef
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, []);
 
   useEffect(() => {
     if (mapRef.current && markerRef.current && window.L) {
