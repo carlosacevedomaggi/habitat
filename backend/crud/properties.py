@@ -3,6 +3,7 @@ from typing import List, Optional
 import models, schemas
 from sqlalchemy.sql import func
 import logging
+from datetime import datetime # Added import
 logger = logging.getLogger(__name__)
 
 # ---------- Property CRUD ----------
@@ -167,6 +168,7 @@ class CRUDProperty:
         for field, value in update_data.items():
             setattr(db_prop, field, value)
         
+        db_prop.updated_at = datetime.utcnow() # Explicitly set updated_at
         db.add(db_prop)
         db.commit()
         db.refresh(db_prop)
