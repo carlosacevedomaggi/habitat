@@ -5,22 +5,45 @@ const IS_SERVER = typeof window === 'undefined';
 // For SSR (server-side), use the internal Docker network address for the proxy if NEXT_PUBLIC_API_URL is relative.
 // For client-side, use NEXT_PUBLIC_API_URL (which might be relative or absolute).
 let apiBase;
+const runtimeApiUrl = process.env.NEXT_PUBLIC_API_URL || '/api'; // Default to /api
 
 if (IS_SERVER) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api'; // Default to /api if not set
-  if (apiUrl.startsWith('http://') || apiUrl.startsWith('https://')) {
-    apiBase = apiUrl; // Use directly if it's a full URL
-  } else {
-    // Ensure leading slash for relative paths if NEXT_PUBLIC_API_URL is like 'api' instead of '/api'
-    const relativePath = apiUrl.startsWith('/') ? apiUrl : `/${apiUrl}`;
-    apiBase = `http://proxy${relativePath}`; // Prepend proxy
+  let pathSegment = '/api'; // Default path segment
+  try {
+    if (runtimeApiUrl.startsWith('http://') || runtimeApiUrl.startsWith('https://')) {
+      const urlObject = new URL(runtimeApiUrl);
+      pathSegment = urlObject.pathname;
+    } else if (runtimeApiUrl.startsWith('/')) {
+      pathSegment = runtimeApiUrl;
+    } else {
+      pathSegment = `/${runtimeApiUrl}`;
+    }
+  } catch (e) {
+    console.error("[SettingsService] Error parsing NEXT_PUBLIC_API_URL for SSR, defaulting path to /api:", e);
+    pathSegment = '/api';
   }
+  
+  if (pathSegment && !pathSegment.startsWith('/')) {
+      pathSegment = `/${pathSegment}`;
+  }
+  if (pathSegment.length > 1 && pathSegment.endsWith('/')) {
+      pathSegment = pathSegment.slice(0, -1);
+  }
+
+  apiBase = `http://proxy${pathSegment}`;
+  // console.log(`[SettingsService SSR] NEXT_PUBLIC_API_URL: "${process.env.NEXT_PUBLIC_API_URL}", Runtime API URL: "${runtimeApiUrl}", Path Segment: "${pathSegment}", Resolved API_BASE for SSR: "${apiBase}"`);
+
 } else {
-  apiBase = process.env.NEXT_PUBLIC_API_URL || '/api'; // Fallback to /api for client
+  apiBase = runtimeApiUrl;
+  // console.log(`[SettingsService CSR] NEXT_PUBLIC_API_URL: "${process.env.NEXT_PUBLIC_API_URL}", Resolved API_BASE for CSR: "${apiBase}"`);
 }
 
 export async function fetchSiteSettings() {
-  const fetchUrl = `${apiBase}/settings/`;
+  // Ensure the final URL doesn't have double slashes if apiBase ends with / and settings/ starts with /
+  // However, our pathSegment logic above ensures apiBase (for SSR) does not end with a slash if path is not just "/"
+  // And /settings/ is a fixed path.
+  const endpoint = '/settings/'; // Ensure endpoint starts with a slash
+  const fetchUrl = `${apiBase}${endpoint}`;
   // console.log("[SettingsService] Attempting to fetch from URL:", fetchUrl); // For debugging
   const res = await fetch(fetchUrl);
   if (!res.ok) {

@@ -5,15 +5,39 @@ console.log("[PropertyService] Original NEXT_PUBLIC_API_BASE_URL:", process.env.
 console.log("[PropertyService] Original NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL);
 
 // Define API_BASE based on environment
-// For SSR (server-side), use the internal Docker network address for the proxy.
-// For client-side, use a relative path which will be handled by the browser and Nginx proxy.
-const API_BASE = IS_SERVER
-  ? (process.env.NEXT_PUBLIC_API_URL && (process.env.NEXT_PUBLIC_API_URL.startsWith('http://') || process.env.NEXT_PUBLIC_API_URL.startsWith('https://')))
-    ? process.env.NEXT_PUBLIC_API_URL // Use directly if it's a full URL
-    : `http://proxy${process.env.NEXT_PUBLIC_API_URL || '/api'}` // Prepend proxy if it's a relative path or not set
-  : (process.env.NEXT_PUBLIC_API_URL || '/api'); // Fallback to /api for client if NEXT_PUBLIC_API_URL is not set
+let API_BASE;
+const runtimeApiUrl = process.env.NEXT_PUBLIC_API_URL || '/api'; // Default to /api
 
-console.log("[PropertyService] Resolved API_BASE:", API_BASE);
+if (IS_SERVER) {
+  let pathSegment = '/api'; // Default path segment
+  try {
+    if (runtimeApiUrl.startsWith('http://') || runtimeApiUrl.startsWith('https://')) {
+      const urlObject = new URL(runtimeApiUrl);
+      pathSegment = urlObject.pathname;
+    } else if (runtimeApiUrl.startsWith('/')) {
+      pathSegment = runtimeApiUrl;
+    } else {
+      pathSegment = `/${runtimeApiUrl}`;
+    }
+  } catch (e) {
+    console.error("[PropertyService] Error parsing NEXT_PUBLIC_API_URL for SSR, defaulting path to /api:", e);
+    pathSegment = '/api';
+  }
+  
+  if (pathSegment && !pathSegment.startsWith('/')) {
+      pathSegment = `/${pathSegment}`;
+  }
+  if (pathSegment.length > 1 && pathSegment.endsWith('/')) {
+      pathSegment = pathSegment.slice(0, -1);
+  }
+
+  API_BASE = `http://proxy${pathSegment}`;
+  console.log(`[PropertyService SSR] NEXT_PUBLIC_API_URL: "${process.env.NEXT_PUBLIC_API_URL}", Runtime API URL: "${runtimeApiUrl}", Path Segment: "${pathSegment}", Resolved API_BASE for SSR: "${API_BASE}"`);
+
+} else {
+  API_BASE = runtimeApiUrl;
+  console.log(`[PropertyService CSR] NEXT_PUBLIC_API_URL: "${process.env.NEXT_PUBLIC_API_URL}", Resolved API_BASE for CSR: "${API_BASE}"`);
+}
 
 export async function fetchProperties(query = "") {
   console.log("[PropertyService] fetchProperties called with query:", query);
