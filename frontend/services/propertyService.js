@@ -36,7 +36,7 @@ if (IS_SERVER) {
 
 } else {
   API_BASE = runtimeApiUrl;
-  console.log(`[PropertyService CSR] NEXT_PUBLIC_API_URL: "${process.env.NEXT_PUBLIC_API_URL}", Resolved API_BASE for CSR: "${API_BASE}"`);
+  console.log(`[PropertyService CSR] NEXT_PUBLIC_API_URL: "${process.env.NEXT_PUBLIC_API_URL}", Runtime API URL: "${runtimeApiUrl}", Resolved API_BASE for CSR: "${API_BASE}"`);
 }
 
 export async function fetchProperties(query = "") {

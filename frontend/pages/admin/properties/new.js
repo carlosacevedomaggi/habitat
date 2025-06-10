@@ -83,42 +83,57 @@ export default function NewPropertyPage() {
 
   // Effect for map initialization
   useEffect(() => {
-    if (leafletReady && typeof window !== 'undefined' && !mapRef.current) {
-      const L = window.L;
-      if (!L) {
-        console.error("Leaflet (L) object not found, cannot initialize map.");
-        return;
-      }
-      const container = document.getElementById('leaflet-map');
-      if (!container) {
-        console.error("Map container 'leaflet-map' not found.");
-        return;
-      }
-      // Ensure container is not already initialized by Leaflet (for HMR or other re-renders)
-      if (container._leaflet_id) {
-         // console.warn("Map container already initialized by Leaflet. Skipping re-initialization or consider removing old map.");
-         // return; // Or attempt to remove and re-init, but can be tricky.
-         // For new page, it's less likely to be an issue than edit page.
-      }
+    // Ensure Leaflet is ready and the map container element exists in the DOM
+    if (leafletReady && typeof window !== 'undefined' && document.getElementById('leaflet-map')) {
+      if (!mapRef.current) { // Initialize map only if it hasn't been already
+        const L = window.L;
+        if (!L) {
+          console.error("Leaflet (L) object not found, cannot initialize map.");
+          return;
+        }
+        
+        const container = document.getElementById('leaflet-map');
+        // Double check container, though the outer if should catch it.
+        if (!container) {
+            console.error("Map container 'leaflet-map' not found at the moment of initialization attempt.");
+            return;
+        }
 
-      const initialLat = parseFloat(formData.latitude) || 10.4806; // Default to Caracas
-      const initialLng = parseFloat(formData.longitude) || -66.9036;
+        // If map was somehow initialized by Leaflet already (e.g. HMR), try to remove it.
+        // This is a common issue with Leaflet and React HMR.
+        if (container && container._leaflet_id) {
+            // console.warn("Map container 'leaflet-map' was already initialized. Attempting to remove old instance.");
+            // This can be risky if not handled carefully, might be better to ensure it only runs once.
+            // For now, we'll proceed, but if issues persist, this area might need more robust handling.
+        }
 
-      mapRef.current = L.map(container).setView([initialLat, initialLng], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      }).addTo(mapRef.current);
-      
-      markerRef.current = L.marker([initialLat, initialLng]).addTo(mapRef.current);
+        const initialLat = parseFloat(formData.latitude) || 10.4806; // Default to Caracas
+        const initialLng = parseFloat(formData.longitude) || -66.9036;
 
-      mapRef.current.on('click', function(e) {
-        const { lat, lng } = e.latlng;
-        setFormData(prev => ({ ...prev, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }));
-        // Marker position will be updated by the next useEffect
-      });
+        try {
+            mapRef.current = L.map(container).setView([initialLat, initialLng], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(mapRef.current);
+            
+            markerRef.current = L.marker([initialLat, initialLng]).addTo(mapRef.current);
+
+            mapRef.current.on('click', function(e) {
+              const { lat, lng } = e.latlng;
+              setFormData(prev => ({ ...prev, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }));
+              // Marker position will be updated by the separate useEffect for lat/lng changes
+            });
+        } catch (mapError) {
+            console.error("Error initializing Leaflet map:", mapError);
+            // If container._leaflet_id existed and caused L.map(container) to fail,
+            // it might mean the old map wasn't properly removed or Leaflet is confused.
+        }
+      }
     }
-    // No explicit cleanup here, mapRef.current.remove() will be in its own unmount effect
-  }, [leafletReady, formData.latitude, formData.longitude]); // formData lat/lng for initial view
+    // Dependencies: leafletReady ensures L is available.
+    // formData.latitude, formData.longitude are for the initial view.
+    // The mapRef.current check prevents re-initialization.
+  }, [leafletReady, formData.latitude, formData.longitude]);
 
   // Effect for map cleanup on component unmount
   useEffect(() => {

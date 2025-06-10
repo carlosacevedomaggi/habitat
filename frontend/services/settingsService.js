@@ -31,11 +31,11 @@ if (IS_SERVER) {
   }
 
   apiBase = `http://proxy${pathSegment}`;
-  // console.log(`[SettingsService SSR] NEXT_PUBLIC_API_URL: "${process.env.NEXT_PUBLIC_API_URL}", Runtime API URL: "${runtimeApiUrl}", Path Segment: "${pathSegment}", Resolved API_BASE for SSR: "${apiBase}"`);
+  console.log(`[SettingsService SSR] NEXT_PUBLIC_API_URL: "${process.env.NEXT_PUBLIC_API_URL}", Runtime API URL: "${runtimeApiUrl}", Path Segment: "${pathSegment}", Resolved API_BASE for SSR: "${apiBase}"`);
 
 } else {
   apiBase = runtimeApiUrl;
-  // console.log(`[SettingsService CSR] NEXT_PUBLIC_API_URL: "${process.env.NEXT_PUBLIC_API_URL}", Resolved API_BASE for CSR: "${apiBase}"`);
+  console.log(`[SettingsService CSR] NEXT_PUBLIC_API_URL: "${process.env.NEXT_PUBLIC_API_URL}", Runtime API URL: "${runtimeApiUrl}", Resolved API_BASE for CSR: "${apiBase}"`);
 }
 
 export async function fetchSiteSettings() {
