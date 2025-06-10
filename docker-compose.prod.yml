@@ -1,7 +1,8 @@
 version: '3.8'
 services:
   backend:
-    image: ghcr.io/carlosacevedomaggi/habitat-backend:latest
+    # image: ghcr.io/carlosacevedomaggi/habitat-backend:latest # Commented out to build locally
+    build: ./backend # Added to build from local Dockerfile in ./backend directory
     entrypoint: ["/app/entrypoint.sh"]
     env_file:
       - ./.env
@@ -17,7 +18,8 @@ services:
       - db
 
   frontend:
-    image: ghcr.io/carlosacevedomaggi/habitat-frontend:latest
+    # image: ghcr.io/carlosacevedomaggi/habitat-frontend:latest # Commented out to build locally
+    build: ./frontend # Added to build from local Dockerfile in ./frontend directory
     env_file: # .env can still provide runtime ENV VARS if your Next.js app uses them beyond NEXT_PUBLIC_*
       - ./.env
     restart: always
