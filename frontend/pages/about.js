@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useSettings } from '../context/SettingsContext';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Ensure API_URL defaults to /api if NEXT_PUBLIC_API_URL is undefined or empty
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 // Assuming NEXT_PUBLIC_API_URL is like http://localhost/api, BACKEND_STATIC_BASE_URL will be http://localhost
 const BACKEND_STATIC_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_STATIC_ROOT || '';
 
