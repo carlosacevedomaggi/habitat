@@ -43,16 +43,18 @@ class CRUDProperty:
 
         query = db.query(models.Property)
 
-        if current_user:
-            if current_user.role == models.Role.staff:
-                logger.info(f"Applying filter for staff user {current_user.username}: only assigned_to_id == {current_user.id}")
-                query = query.filter(models.Property.assigned_to_id == current_user.id)
-            # Potentially other role-based filters for authenticated users could go here
-            # else:
-            #     # For admin/manager, perhaps show all, or all non-draft?
-            #     # For now, if not staff, no additional user-based filters are applied beyond public visibility rules
-            #     logger.info(f"User {current_user.username} (Role: {current_user.role.value}) - no specific user-based query adjustments other than general filters.")
-                
+        # Apply public filter first if no user is authenticated
+        if not current_user:
+            logger.info("Applying public filter: status == 'available'")
+            query = query.filter(models.Property.status == 'available')
+        # Then, apply role-specific filters if a user is authenticated
+        elif current_user.role == models.Role.staff:
+            logger.info(f"Applying filter for staff user {current_user.username}: only assigned_to_id == {current_user.id}")
+            query = query.filter(models.Property.assigned_to_id == current_user.id)
+        # For other authenticated roles (admin, manager), no additional status or assignment filters are applied here by default,
+        # meaning they will see properties based on the standard filters below, effectively seeing all statuses unless other logic restricts it.
+        # Potentially other role-based filters for authenticated users could go here.
+            
         # Standard filters applicable to all (public and authenticated)
         if search:
             ilike = f"%{search}%"
